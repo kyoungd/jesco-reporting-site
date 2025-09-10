@@ -1,0 +1,342 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EntryStatus {
+  DRAFT
+  POSTED
+}
+
+enum UserLevel {
+  L5_ADMIN
+  L4_AGENT
+  L3_SUBCLIENT
+  L2_CLIENT
+}
+
+enum AssetClass {
+  EQUITY
+  FIXED_INCOME
+  CASH
+  ALTERNATIVE
+  COMMODITY
+  REAL_ESTATE
+  DERIVATIVE
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  DIVIDEND
+  INTEREST
+  FEE
+  TAX
+  TRANSFER_IN
+  TRANSFER_OUT
+  CORPORATE_ACTION
+  SPLIT
+  MERGER
+  SPINOFF
+}
+
+enum AccountType {
+  INVESTMENT
+  CASH
+  MARGIN
+  RETIREMENT
+  TRUST
+  CUSTODIAL
+}
+
+model User {
+  id          String      @id @default(cuid())
+  clerkUserId String      @unique
+  email       String      @unique
+  firstName   String?
+  lastName    String?
+  level       UserLevel   @default(L2_CLIENT)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  clientProfile ClientProfile?
+  auditLogs     AuditLog[]
+  
+  @@map("users")
+}
+
+model ClientProfile {
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  organizationId  String?
+  parentClientId  String?
+  level           UserLevel         @default(L2_CLIENT)
+  secdexCode      String?           @unique
+  companyName     String?
+  contactName     String?
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?           @default("US")
+  timeZone        String?           @default("America/New_York")
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization    Organization?     @relation(fields: [organizationId], references: [id])
+  parentClient    ClientProfile?    @relation("ClientHierarchy", fields: [parentClientId], references: [id])
+  subClients      ClientProfile[]   @relation("ClientHierarchy")
+  
+  masterAccounts  MasterAccount[]
+  clientAccounts  ClientAccount[]
+  transactions    Transaction[]
+  positions       Position[]
+  feeSchedules    FeeSchedule[]
+
+  @@index([level])
+  @@index([secdexCode])
+  @@index([organizationId])
+  @@index([parentClientId])
+  @@map("client_profiles")
+}
+
+model Organization {
+  id               String          @id @default(cuid())
+  name             String
+  description      String?
+  website          String?
+  phone            String?
+  address          String?
+  city             String?
+  state            String?
+  zipCode          String?
+  country          String?         @default("US")
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  clientProfiles   ClientProfile[]
+  masterAccounts   MasterAccount[]
+
+  @@map("organizations")
+}
+
+model MasterAccount {
+  id               String          @id @default(cuid())
+  accountNumber    String          @unique
+  accountName      String
+  accountType      AccountType     @default(INVESTMENT)
+  clientProfileId  String
+  organizationId   String?
+  custodian        String?
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  clientProfile    ClientProfile   @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+  organization     Organization?   @relation(fields: [organizationId], references: [id])
+  
+  clientAccounts   ClientAccount[]
+  transactions     Transaction[]
+  positions        Position[]
+
+  @@index([clientProfileId])
+  @@index([accountType])
+  @@map("master_accounts")
+}
+
+model ClientAccount {
+  id               String          @id @default(cuid())
+  accountNumber    String          @unique
+  accountName      String
+  accountType      AccountType     @default(INVESTMENT)
+  masterAccountId  String
+  clientProfileId  String
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  masterAccount    MasterAccount   @relation(fields: [masterAccountId], references: [id], onDelete: Cascade)
+  clientProfile    ClientProfile   @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+  
+  transactions     Transaction[]
+  positions        Position[]
+
+  @@index([masterAccountId])
+  @@index([clientProfileId])
+  @@index([accountType])
+  @@map("client_accounts")
+}
+
+model Security {
+  id            String        @id @default(cuid())
+  symbol        String        @unique
+  name          String
+  assetClass    AssetClass
+  exchange      String?
+  currency      String        @default("USD")
+  country       String?       @default("US")
+  sector        String?
+  industry      String?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  prices        Price[]
+  transactions  Transaction[]
+  positions     Position[]
+
+  @@index([symbol])
+  @@index([assetClass])
+  @@index([exchange])
+  @@map("securities")
+}
+
+model Price {
+  id          String    @id @default(cuid())
+  securityId  String
+  date        DateTime
+  open        Decimal?  @db.Decimal(18, 6)
+  high        Decimal?  @db.Decimal(18, 6)
+  low         Decimal?  @db.Decimal(18, 6)
+  close       Decimal   @db.Decimal(18, 6)
+  volume      BigInt?
+  adjustedClose Decimal? @db.Decimal(18, 6)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  security    Security  @relation(fields: [securityId], references: [id], onDelete: Cascade)
+
+  @@unique([securityId, date])
+  @@index([date])
+  @@map("prices")
+}
+
+model Transaction {
+  id                String          @id @default(cuid())
+  transactionDate   DateTime
+  tradeDate         DateTime?
+  settlementDate    DateTime?
+  transactionType   TransactionType
+  securityId        String?
+  quantity          Decimal?        @db.Decimal(18, 6)
+  price             Decimal?        @db.Decimal(18, 6)
+  amount            Decimal         @db.Decimal(18, 2)
+  fee               Decimal?        @db.Decimal(18, 2)
+  tax               Decimal?        @db.Decimal(18, 2)
+  description       String?
+  reference         String?
+  entryStatus       EntryStatus     @default(DRAFT)
+  masterAccountId   String?
+  clientAccountId   String?
+  clientProfileId   String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  security          Security?       @relation(fields: [securityId], references: [id])
+  masterAccount     MasterAccount?  @relation(fields: [masterAccountId], references: [id])
+  clientAccount     ClientAccount?  @relation(fields: [clientAccountId], references: [id])
+  clientProfile     ClientProfile   @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+
+  @@index([transactionDate])
+  @@index([transactionType])
+  @@index([entryStatus])
+  @@index([clientProfileId])
+  @@index([masterAccountId])
+  @@index([clientAccountId])
+  @@map("transactions")
+}
+
+model Position {
+  id                String        @id @default(cuid())
+  date              DateTime
+  securityId        String
+  quantity          Decimal       @db.Decimal(18, 6)
+  averageCost       Decimal?      @db.Decimal(18, 6)
+  marketValue       Decimal?      @db.Decimal(18, 2)
+  unrealizedGainLoss Decimal?     @db.Decimal(18, 2)
+  masterAccountId   String?
+  clientAccountId   String?
+  clientProfileId   String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  security          Security      @relation(fields: [securityId], references: [id], onDelete: Cascade)
+  masterAccount     MasterAccount? @relation(fields: [masterAccountId], references: [id])
+  clientAccount     ClientAccount? @relation(fields: [clientAccountId], references: [id])
+  clientProfile     ClientProfile @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([date, securityId, masterAccountId, clientAccountId])
+  @@index([date])
+  @@index([clientProfileId])
+  @@index([masterAccountId])
+  @@index([clientAccountId])
+  @@map("positions")
+}
+
+model Benchmark {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  symbol      String    @unique
+  description String?
+  category    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([symbol])
+  @@map("benchmarks")
+}
+
+model FeeSchedule {
+  id              String        @id @default(cuid())
+  clientProfileId String
+  name            String
+  description     String?
+  feeType         String
+  feeRate         Decimal       @db.Decimal(10, 6)
+  minimumFee      Decimal?      @db.Decimal(18, 2)
+  maximumFee      Decimal?      @db.Decimal(18, 2)
+  assetClass      AssetClass?
+  effectiveDate   DateTime
+  expirationDate  DateTime?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  clientProfile   ClientProfile @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+
+  @@index([clientProfileId])
+  @@index([effectiveDate])
+  @@index([feeType])
+  @@map("fee_schedules")
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  userId      String
+  action      String
+  entityType  String
+  entityId    String?
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([timestamp])
+  @@map("audit_logs")
+}

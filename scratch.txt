@@ -1,0 +1,38 @@
+READ FIRST: The Prisma schema from Phase 1 is COMPLETE and FINAL. DO NOT modify it.
+
+ADD these library files to the existing Next.js project:
+
+1. lib/auth.js
+   - getCurrentUser() - gets user with ClientProfile
+   - checkPermission(user, action, targetClientId)
+   - requireRole(minLevel)
+
+2. lib/permissions.js  
+   - canViewClient(user, clientId)
+   - canEditClient(user, clientId)
+   - getViewableClients(user) - returns array of clientIds
+   - All RBAC rules from spec (L5 sees all, L4 sees org, L2 sees self+children, L3 sees self)
+
+3. lib/validation.js with Zod schemas:
+   - clientProfileSchema
+   - transactionSchema  
+   - priceSchema
+   - accountSchema
+   - All with proper types, required fields
+
+4. lib/audit.js
+   - logToAxiom(event, userId, metadata)
+   - logToDatabase(event, userId, metadata)
+   - Wrapper for dual logging
+
+5. components/ui/data-table.jsx
+   - Reusable table with sorting, filtering
+   - Support for draft/posted status badges
+
+6. components/ui/form-wrapper.jsx
+   - Wrapper using react-hook-form
+   - Error display
+   - Submit handling with loading states
+
+DO NOT modify: schema.prisma, package.json, middleware.js, layout.js
+ONLY ADD the files listed above.
