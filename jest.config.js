@@ -2,6 +2,9 @@
 module.exports = {
   testEnvironment: 'node',
   clearMocks: true,
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+  },
   collectCoverageFrom: [
     'lib/**/*.{js,jsx}',
     'components/**/*.{js,jsx}',
@@ -18,8 +21,7 @@ module.exports = {
   ],
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/__tests__/integration/'
+    '<rootDir>/node_modules/'
   ],
   moduleFileExtensions: ['js', 'jsx', 'json'],
   testTimeout: 10000

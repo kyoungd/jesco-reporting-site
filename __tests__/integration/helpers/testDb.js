@@ -1,7 +1,8 @@
-const { PrismaClient } = require('@prisma/client')
-const { USER_LEVELS, TRANSACTION_TYPES, ACCOUNT_TYPES, ASSET_CLASSES } = require('../../../lib/constants')
+import { PrismaClient } from '@prisma/client'
+import { USER_LEVELS, TRANSACTION_TYPES, ACCOUNT_TYPES, ASSET_CLASSES } from '../../../lib/constants.js'
 
-// Get the global prisma instance from setup
+// Get the global prisma instance from setup or create one with default configuration
+// DATABASE_URL should already be set to TEST_DATABASE_URL by the setup file
 const prisma = global.prisma || new PrismaClient()
 
 /**
@@ -269,7 +270,7 @@ async function createFullTestUser(level = USER_LEVELS.L2_CLIENT, organizationId 
   }
 }
 
-module.exports = {
+export {
   resetDatabase,
   seedTestData,
   createTestOrganization,

@@ -1,11 +1,11 @@
-const { getViewableClients, canViewClient, canEditClient, getClientHierarchy } = require('../../../lib/permissions')
-const { USER_LEVELS } = require('../../../lib/constants')
-const { 
+import { getViewableClients, canViewClient, canEditClient, getClientHierarchy } from '../../../lib/permissions.js'
+import { USER_LEVELS } from '../../../lib/constants.js'
+import { 
   resetDatabase, 
   seedTestData, 
   createFullTestUser,
   createTestOrganization 
-} = require('../helpers/testDb')
+} from '../helpers/testDb.js'
 
 describe('Permissions with Real Database', () => {
   let testData

@@ -1,12 +1,12 @@
-const {
+import {
   clientProfileSchema,
   transactionSchema,
   priceSchema,
   accountSchema,
   securitySchema,
   validateSchema
-} = require('../../../lib/validation')
-const { USER_LEVELS, TRANSACTION_TYPES, ASSET_CLASSES, ACCOUNT_TYPES } = require('../../../lib/constants')
+} from '../../../lib/validation.js'
+import { USER_LEVELS, TRANSACTION_TYPES, ASSET_CLASSES, ACCOUNT_TYPES } from '../../../lib/constants.js'
 
 describe('Validation Library (Unit Tests)', () => {
   describe('clientProfileSchema', () => {

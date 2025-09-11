@@ -1,4 +1,4 @@
-const { 
+import { 
   canViewClient, 
   canEditClient, 
   getViewableClients,
@@ -6,11 +6,11 @@ const {
   hasAgentAccess,
   canPostTransaction,
   canDeleteTransaction
-} = require('../../../lib/permissions')
-const { USER_LEVELS } = require('../../../lib/constants')
+} from '../../../lib/permissions.js'
+import { USER_LEVELS } from '../../../lib/constants.js'
 
 // Mock the database
-jest.mock('../../../lib/db', () => ({
+jest.mock('../../../lib/db.js', () => ({
   db: {
     clientProfile: {
       findMany: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('../../../lib/db', () => ({
   }
 }))
 
-const { db } = require('../../../lib/db')
+import { db } from '../../../lib/db.js'
 
 describe('Permissions Library (Unit Tests)', () => {
   beforeEach(() => {

@@ -40,5 +40,29 @@ jest.mock('next/font/google', () => ({
   }),
 }))
 
+// Load test environment variables BEFORE anything else
+const path = require('path')
+const fs = require('fs')
+
+// Load .env.test file for integration tests
+const envTestPath = path.join(process.cwd(), '.env.test')
+if (fs.existsSync(envTestPath)) {
+  const envConfig = fs.readFileSync(envTestPath, 'utf8')
+  const envVars = envConfig.split('\n').filter(line => line.trim() && !line.startsWith('#'))
+  
+  envVars.forEach(line => {
+    const [key, ...valueParts] = line.split('=')
+    if (key && valueParts.length > 0) {
+      const value = valueParts.join('=').replace(/^"(.*)"$/, '$1')
+      process.env[key.trim()] = value.trim()
+    }
+  })
+}
+
+// For integration tests, override DATABASE_URL with TEST_DATABASE_URL
+if (process.env.TEST_DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.TEST_DATABASE_URL
+}
+
 // Mock environment variables
 process.env.NODE_ENV = 'test'
