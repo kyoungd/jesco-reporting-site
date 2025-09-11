@@ -544,3 +544,51 @@ This is your routine sheet. Follow it exactly. Each phase builds on previous - l
 You want me to adjust any phase? Or this is precise enough for competition?
 
 *clicks pen with finality*
+
+
+
+
+
+
+OK.   Can I get the AI to write unit test for Phase 3A?  Is it reliable?  If not, at least I can use it as frame work?
+I want both Mocking tests, and Real test that access database, clerk and other services.
+Also, please make sure that this testing does not overwrite existing tests.
+Append word "_phase3b" on each test.
+
+
+
+Phase 3B
+READ: Use existing schema, auth, and permissions libraries. DO NOT modify them.
+
+CREATE security and account management:
+
+1. app/securities/page.js
+   - Grid view of all securities
+   - Add/edit inline
+   - Search by ticker/name
+
+2. app/securities/api/route.js
+   - CRUD operations for securities
+   - Enforce unique ticker
+
+3. app/accounts/page.js
+   - List master & client accounts
+   - Filter by viewable clients only
+   - Show account type, benchmark
+
+4. app/accounts/new/page.js
+   - Create MasterAccount or ClientAccount
+   - Link to ClientProfile via secdexCode
+   - Select default benchmark & fee schedule
+
+5. app/accounts/[id]/page.js
+   - View account details
+   - Show linked client info
+
+6. app/api/accounts/route.js
+   - GET: filtered by permissions
+   - POST: create with validation
+
+Import from existing lib/* files.
+Use existing UI components.
+DO NOT modify Phase 3A files.

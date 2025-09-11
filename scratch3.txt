@@ -1,72 +1,37 @@
-Create both unit AND integration tests for Phase 2 libraries.
+READ: Prisma schema is FINAL. Use existing lib/auth, lib/permissions, lib/validation.
 
-PART A: SETUP FOR DUAL TESTING
+CREATE client management pages:
 
-1. package.json scripts:
-   "test:unit": "jest --testMatch='**/*.test.js'",
-   "test:integration": "jest --testMatch='**/*.integration.test.js' --runInBand",
-   "test:all": "npm run test:unit && npm run test:integration"
+1. app/clients/page.js
+   - List all viewable clients (use getViewableClients)
+   - Search by name/secdexCode
+   - Show hierarchy tree view
+   - Links to edit/view
 
-2. jest.config.js - Default config for unit tests
+2. app/clients/new/page.js
+   - Form using clientProfileSchema from lib/validation
+   - Auto-generate secdexCode if empty
+   - Parent selector (filtered by permissions)
+   - L2 users: auto-set parent to self
+   - Log creation to audit
 
-3. jest.integration.config.js - For integration tests:
-   - testTimeout: 30000 (database operations are slower)
-   - setupFilesAfterEnv: ['<rootDir>/__tests__/integration/setup.js']
-   - runInBand: true (no parallel to avoid database conflicts)
+3. app/clients/[id]/page.js
+   - View client details
+   - Show sub-clients if any
+   - Edit button if permitted
 
-4. __tests__/integration/setup.js:
-   - Check for TEST_DATABASE_URL (fail fast if missing)
-   - Run Prisma migrations on test database
-   - Setup test Clerk users (or use test API keys)
-   - Global beforeAll: clean database
-   - Global afterAll: cleanup
+4. app/clients/[id]/edit/page.js
+   - Edit form with permission check
+   - Show who/when last modified
+   - Log changes to audit
 
-5. .env.test:
-   TEST_DATABASE_URL="postgresql://user:pass@localhost:5432/investment_test"
-   CLERK_TEST_SECRET_KEY="test_key_here"
-   CLERK_TEST_FRONTEND_API="https://test.clerk.dev"
+5. app/api/clients/route.js
+   - GET: return viewable clients
+   - POST: create with validation
 
-PART B: UNIT TESTS (Mocked)
+6. app/api/clients/[id]/route.js
+   - GET, PUT, DELETE with permission checks
 
-6. __tests__/unit/lib/permissions.test.js:
-   - Mock Prisma client
-   - Test pure permission logic
-   - Use fake user objects
-   - No database calls
-
-7. __tests__/unit/lib/validation.test.js:
-   - Test Zod schemas in isolation
-   - No external dependencies
-
-PART C: INTEGRATION TESTS (Real Services)
-
-8. __tests__/integration/helpers/testDb.js:
-   - resetDatabase() - truncate all tables
-   - seedTestData() - create test hierarchy
-   - Factory functions for test data
-
-9. __tests__/integration/lib/permissions.integration.test.js:
-```javascript
-   describe('Permissions with Real Database', () => {
-     beforeEach(async () => {
-       await resetDatabase();
-       await seedTestData();
-     });
-
-     test('L2 client can actually retrieve their sub-clients', async () => {
-       // Create real client hierarchy in DB
-       const parent = await prisma.clientProfile.create({...});
-       const child = await prisma.clientProfile.create({
-         parentClientId: parent.id
-       });
-       
-       // Test with real Clerk user session
-       const clients = await getViewableClients(parentUser);
-       expect(clients).toContain(child.id);
-     });
-
-     test('Cannot bypass permissions with direct Prisma query', async () => {
-       // Attempt to access unauthorized data
-       // Verify permissions are enforced at query level
-     });
-   });
+Use existing components/ui/form-wrapper and data-table.
+DO NOT create new UI components.
+DO NOT modify lib files.

@@ -11,12 +11,12 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:reset": "prisma db push --force-reset",
-    "test:unit": "jest --selectProjects unit-components unit-api",
-    "test:integration": "jest --selectProjects integration --runInBand",
-    "test:components": "jest --selectProjects unit-components",
-    "test:api": "jest --selectProjects unit-api",
+    "test:phase2": "jest --selectProjects unit-lib-phase2 integration-phase2",
+    "test:phase3a": "jest --selectProjects unit-clients-phase3a unit-api-phase3a integration-phase3a",
+    "test:unit": "jest --selectProjects unit-lib-phase2 unit-clients-phase3a unit-api-phase3a",
+    "test:integration": "jest --selectProjects integration-phase2 integration-phase3a --runInBand",
     "test:all": "npm run test:unit && npm run test:integration",
-    "test": "npm run test:unit"
+    "test": "npm run test:phase2"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.0",
