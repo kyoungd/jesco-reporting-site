@@ -555,6 +555,11 @@ I want both Mocking tests, and Real test that access database, clerk and other s
 Also, please make sure that this testing does not overwrite existing tests.
 Append word "_phase3b" on each test.
 
+- Use CommonJS in tests: const { } = require()
+- Use ES6 in app code: import/export
+- No "type": "module" in package.json
+- Jest with babel-jest transformation
+
 
 
 Phase 3B
@@ -592,3 +597,53 @@ CREATE security and account management:
 Import from existing lib/* files.
 Use existing UI components.
 DO NOT modify Phase 3A files.
+
+
+
+
+
+
+Let's create a claude code instruction for testing of Phase 3D.
+I want both Mocking tests, and Real test that access database, clerk and other services.
+Also, please make sure that this testing does not overwrite existing tests.
+Append word "_phase3d" on each test.
+Use modern testing approach with ES6 imports, Jest v30
+
+
+
+
+Phase 3D
+
+READ: Use existing schema. Price model has securityId + date unique constraint.
+
+CREATE price entry system:
+
+1. app/prices/page.js
+   - Date selector
+   - Grid showing all securities for selected date
+   - Mass entry for single date
+   - Color code: has price (green), missing (red)
+
+2. app/prices/series/page.js
+   - Select single security
+   - Enter prices across multiple dates
+   - Show price chart (simple line)
+
+3. app/prices/import/page.js
+   - Manual grid for bulk entry
+   - Columns: Date, Ticker, Close
+   - Paste detection BLOCKED (as per spec)
+   - Validate and show errors before save
+
+4. app/api/prices/route.js
+   - GET by date or security
+   - POST with duplicate handling
+   - Upsert behavior for existing
+
+5. app/api/prices/missing/route.js
+   - GET list of missing prices for held positions
+   - Used for data quality checks
+
+Use existing components and auth.
+DO NOT modify transactions pages.
+DO NOT change schema.
