@@ -11,8 +11,10 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:reset": "prisma db push --force-reset",
-    "test:unit": "jest --testMatch='**/*.test.js'",
-    "test:integration": "jest --testMatch='**/*.integration.test.js' --runInBand",
+    "test:unit": "jest --selectProjects unit-components unit-api",
+    "test:integration": "jest --selectProjects integration --runInBand",
+    "test:components": "jest --selectProjects unit-components",
+    "test:api": "jest --selectProjects unit-api",
     "test:all": "npm run test:unit && npm run test:integration",
     "test": "npm run test:unit"
   },
@@ -70,7 +72,12 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@clerk/testing": "^1.12.5",
     "@jest/globals": "^30.1.2",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.73",
@@ -80,8 +87,11 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "jest": "^30.1.3",
+    "jest-environment-jsdom": "^30.1.2",
     "jest-environment-node": "^30.1.2",
-    "postcss": "^8.4.38"
+    "node-mocks-http": "^1.17.2",
+    "postcss": "^8.4.38",
+    "supertest": "^7.1.4"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
