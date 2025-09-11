@@ -1,5 +1,14 @@
 /** @type {import('jest').Config} */
 module.exports = {
+  // Global transform for all projects
+  transform: {
+    '^.+\\.(js|jsx)$': ['babel-jest', {
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        ['@babel/preset-react', { runtime: 'automatic' }]
+      ]
+    }]
+  },
   projects: [
     // Phase 2: Unit tests for lib functions (Node environment)
     {
@@ -16,6 +25,37 @@ module.exports = {
         '!**/*.d.ts',
       ],
       testTimeout: 10000,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 4: Unit tests for calculation libraries (Node environment)
+    {
+      displayName: 'unit-calculations-phase4',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/unit/*_phase4.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      collectCoverageFrom: [
+        'lib/calculations/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
     },
     // Phase 3A: Unit tests for client components (React Testing Library)
     {
@@ -76,6 +116,29 @@ module.exports = {
       },
       testTimeout: 30000,
       maxWorkers: 1,
+    },
+    // Phase 4: Integration tests for calculations with real database
+    {
+      displayName: 'integration-phase4',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/integration/*_phase4.test.js'],
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup.js',
+        '<rootDir>/__tests__/setup/db-test-utils.js'
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      testTimeout: 30000,
+      maxWorkers: 1,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
     },
     // Phase 3B: Unit tests for securities components (React Testing Library)
     {
