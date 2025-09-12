@@ -1,38 +1,47 @@
-READ FIRST: The Prisma schema from Phase 1 is COMPLETE and FINAL. DO NOT modify it.
+Phase 5
+READ: Use calculation functions from Phase 4. Don't modify them.
 
-ADD these library files to the existing Next.js project:
+CREATE reporting interface:
 
-1. lib/auth.js
-   - getCurrentUser() - gets user with ClientProfile
-   - checkPermission(user, action, targetClientId)
-   - requireRole(minLevel)
+1. app/reports/page.js
+   - Report selector dashboard
+   - Cards for each report type
+   - Permission-filtered account list
 
-2. lib/permissions.js  
-   - canViewClient(user, clientId)
-   - canEditClient(user, clientId)
-   - getViewableClients(user) - returns array of clientIds
-   - All RBAC rules from spec (L5 sees all, L4 sees org, L2 sees self+children, L3 sees self)
+2. app/reports/aum/page.js
+   - Account & date range selectors
+   - Call calculateAUM from lib
+   - Display table with BOP, flows, PnL, EOP
+   - Show QC status indicator
+   - Export to CSV button
 
-3. lib/validation.js with Zod schemas:
-   - clientProfileSchema
-   - transactionSchema  
-   - priceSchema
-   - accountSchema
-   - All with proper types, required fields
+3. app/reports/performance/page.js
+   - Show TWR gross/net
+   - YTD, QTD, Since Inception
+   - Benchmark comparison
+   - Risk metrics if 12+ months
 
-4. lib/audit.js
-   - logToAxiom(event, userId, metadata)
-   - logToDatabase(event, userId, metadata)
-   - Wrapper for dual logging
+4. app/reports/holdings/page.js
+   - Current holdings grid
+   - Group by asset class
+   - Show weights, unrealized P&L
+   - Subtotals row
 
-5. components/ui/data-table.jsx
-   - Reusable table with sorting, filtering
-   - Support for draft/posted status badges
+5. app/reports/transactions/page.js
+   - Transaction log with filters
+   - Running cash balance column
+   - Turnover calculation
 
-6. components/ui/form-wrapper.jsx
-   - Wrapper using react-hook-form
-   - Error display
-   - Submit handling with loading states
+6. app/api/reports/[type]/route.js
+   - GET endpoint for each report
+   - Call calculation libs
+   - Check permissions
+   - Log access to Axiom
 
-DO NOT modify: schema.prisma, package.json, middleware.js, layout.js
-ONLY ADD the files listed above.
+7. components/reports/export-csv.jsx
+   - Generic CSV export button
+   - Format data properly
+
+Use server-side calculation libs.
+DO NOT recalculate in frontend.
+DO NOT modify calculation libraries.

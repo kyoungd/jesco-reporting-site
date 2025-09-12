@@ -647,3 +647,94 @@ CREATE price entry system:
 Use existing components and auth.
 DO NOT modify transactions pages.
 DO NOT change schema.
+
+
+
+
+
+
+  npm run test:phase3d              # Run all Phase 3D tests
+  npm run test:phase3d:unit         # Unit tests only
+  npm run test:phase3d:integration  # Integration tests only
+  npm run test:phase3d:all          # Complete test suite
+  npm run test:phase3d:coverage     # With coverage reporting
+
+
+
+
+Phase 4
+READ: All previous UI is complete. Now add calculation functions.
+
+CREATE calculation libraries:
+
+1. lib/calculations/aum.js
+   - calculateAUM(accountId, startDate, endDate)
+   - Returns: BOP, EOP, contributions, withdrawals, netFlows, marketPnL
+   - Identity check: EOP - BOP = NetFlows + MarketPnL
+
+2. lib/calculations/twr.js
+   - calculateDailyReturns(accountId, startDate, endDate)
+   - calculateTWR(dailyReturns)
+   - Exclude external flows from returns
+   - Return gross and net (after fees)
+
+3. lib/calculations/holdings.js
+   - getHoldings(accountId, asOfDate)
+   - calculateWeights(holdings)
+   - calculateUnrealizedPnL(holdings)
+   - Group by assetClass
+
+4. lib/calculations/fees.js
+   - accrueFees(accountId, startDate, endDate)
+   - Daily accrual: AUM × (rate / 365)
+   - Include manual adjustments
+
+5. lib/calculations/lots.js
+   - trackLots(transactions) 
+   - calculateRealizedPnL(sales, method='FIFO')
+   - Split short/long term at 365 days
+
+6. lib/calculations/qc.js
+   - checkAUMIdentity(aumData, tolerance)
+   - findMissingPrices(accountId, dateRange)
+   - validateBenchmarkDates(returns, benchmarkData)
+   - Return: {status: 'PASS'|'WARN'|'FAIL', messages: []}
+
+All functions should be pure - no database calls.
+Pass data in, get results out.
+Use decimal.js for precision.
+DO NOT modify UI files.
+  Created comprehensive tests with all requirements:
+
+
+  1. Test Factory Helpers (__tests__/helpers/testFactory_phase4.js)
+    - Mock data generators for all calculation types
+    - Precision assertion helpers for currency and decimal values
+    - Validation utilities for financial calculations
+  2. Unit Tests (all with _phase4.test.js suffix):
+    - aum_phase4.test.js - AUM calculations with identity validation
+    - twr_phase4.test.js - Time-weighted returns with geometric linking
+    - holdings_phase4.test.js - Portfolio holdings and weight calculations
+    - fees_phase4.test.js - Management and performance fee calculations
+    - lots_phase4.test.js - Tax lot tracking with FIFO/LIFO methods
+    - qc_phase4.test.js - Quality control with PASS/WARN/FAIL validation
+  3. Integration Tests (calculations_integration_phase4.test.js)
+    - Real database operations with Prisma
+    - End-to-end calculation workflows
+    - Proper setup/cleanup procedures
+  4. Package.json Scripts:
+    - npm run test:phase4 - Run all Phase 4 tests
+    - npm run test:phase4:unit - Unit tests only
+    - npm run test:phase4:integration - Integration tests only
+    - npm run test:phase4:coverage - Coverage reports
+
+
+    Let's create a claude code instruction for testing of Phase 4.
+I want both Mocking tests, and Real test that access database, clerk and other services.
+Also, please make sure that this testing does not overwrite existing tests.
+Append word "_phase4" on each test.
+Use modern testing approach with ES6 imports, Jest v30
+Make sure the test is concise to compensate for the Claude Code context-rot.
+Make sure to use .env.test as test environmental file.
+
+-----------------------

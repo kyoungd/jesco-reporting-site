@@ -335,6 +335,81 @@ module.exports = {
           ]
         }]
       },
+    },
+    // Phase 6: Unit tests for PDF formatters (Node environment)
+    {
+      displayName: 'unit-pdf-phase6',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/lib/pdf/*_phase6.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      collectCoverageFrom: [
+        'lib/pdf/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 6: Unit tests for PDF page components (React Testing Library)
+    {
+      displayName: 'unit-pdf-app-phase6',
+      testEnvironment: 'jsdom',
+      testMatch: ['<rootDir>/__tests__/app/**/*_phase6.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+        '^lucide-react$': '<rootDir>/__tests__/__mocks__/lucide-react.js',
+      },
+      collectCoverageFrom: [
+        'app/reports/pdf/**/*.{js,jsx}',
+        'app/api/reports/pdf/**/*.{js,jsx}',
+        'components/reports/pdf-*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transformIgnorePatterns: [
+        'node_modules/(?!(@clerk|lucide-react)/)'
+      ],
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 6: Integration tests for PDF generation with real database
+    {
+      displayName: 'integration-pdf-phase6',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/lib/pdf/generator_phase6.test.js'],
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup.js',
+        '<rootDir>/__tests__/setup/db-test-utils.js'
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      testTimeout: 30000,
+      maxWorkers: 1,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
     }
   ],
   collectCoverageFrom: [
