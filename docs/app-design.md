@@ -471,50 +471,94 @@ IMPORTANT SECURITY:
 ```
 READ: Use calculation functions from Phase 4. Don't modify them.
 
-CREATE reporting interface:
+CRITICAL: READ THESE CONSTRAINTS FIRST:
+- DO NOT modify prisma/schema.prisma - it is COMPLETE
+- DO NOT modify lib/calculations/* - USE these existing functions
+- DO NOT modify lib/auth.js or lib/permissions.js
+- DO NOT recreate any components in components/ui/*
+- USE existing validation schemas from lib/validation.js
+
+EXISTING IMPLEMENTATIONS TO USE:
+From lib/calculations/aum.js:
+  - calculateAUM(accountId, startDate, endDate)
+From lib/calculations/twr.js:
+  - calculateDailyReturns(accountId, startDate, endDate)
+  - calculateTWR(dailyReturns)
+From lib/calculations/holdings.js:
+  - getHoldings(accountId, asOfDate)
+From lib/calculations/fees.js:
+  - accrueFees(accountId, startDate, endDate)
+From lib/calculations/qc.js:
+  - checkAUMIdentity(aumData, tolerance)
+
+CREATE reporting interface - NEW FILES ONLY:
 
 1. app/reports/page.js
-   - Report selector dashboard
-   - Cards for each report type
-   - Permission-filtered account list
+   - Report type selector dashboard
+   - Use getViewableClients() from lib/permissions
+   - Show only permitted accounts
+   - NO database queries - use existing functions
 
 2. app/reports/aum/page.js
-   - Account & date range selectors
-   - Call calculateAUM from lib
-   - Display table with BOP, flows, PnL, EOP
-   - Show QC status indicator
-   - Export to CSV button
+   - Import calculateAUM from 'lib/calculations/aum'
+   - DO NOT reimplement AUM logic
+   - Call existing function with params
+   - Display returned data structure
+   - Export CSV using data as-is
 
 3. app/reports/performance/page.js
-   - Show TWR gross/net
-   - YTD, QTD, Since Inception
-   - Benchmark comparison
-   - Risk metrics if 12+ months
+   - Import from 'lib/calculations/twr'
+   - Use calculateTWR() exactly as defined
+   - DO NOT modify return calculations
+   - Format display only
 
 4. app/reports/holdings/page.js
-   - Current holdings grid
-   - Group by asset class
-   - Show weights, unrealized P&L
-   - Subtotals row
+   - Import getHoldings from 'lib/calculations/holdings'
+   - Call with (accountId, new Date())
+   - Group display by assetClass from returned data
 
 5. app/reports/transactions/page.js
-   - Transaction log with filters
-   - Running cash balance column
-   - Turnover calculation
+   - Query transactions using Prisma
+   - Import calculateCashBalance from 'lib/transactions'
+   - Use existing function for running balance
 
-6. app/api/reports/[type]/route.js
-   - GET endpoint for each report
-   - Call calculation libs
-   - Check permissions
-   - Log access to Axiom
+6. app/api/reports/aum/route.js (SPECIFIC PATH)
+   - NOT [type] - explicit 'aum'
+   - Import calculateAUM, call it, return JSON
+   - Check permissions using canViewClient()
 
-7. components/reports/export-csv.jsx
-   - Generic CSV export button
-   - Format data properly
+7. app/api/reports/performance/route.js
+   - Explicit path, not dynamic
+   - Use existing TWR functions only
 
-Use server-side calculation libs.
-DO NOT recalculate in frontend.
-DO NOT modify calculation libraries.
+8. app/api/reports/holdings/route.js
+   - Call getHoldings, return result
+   - No custom calculations
+
+9. components/reports/csv-export-button.jsx (RENAMED)
+   - Generic CSV export component
+   - Receives data and filename props
+   - NO data transformation
+
+10. components/reports/report-filters.jsx
+    - Shared account/date selectors
+    - Import getViewableClients from lib/permissions
+    - Reusable across report pages
+
+FORBIDDEN ACTIONS:
+- NO modifications to calculation logic
+- NO direct database queries except in transactions page
+- NO changes to auth or permission checks
+- NO new fields in schema
+- NO reimplementation of existing functions
+
+USE these existing UI components:
+- components/ui/data-table.jsx for all tables
+- components/ui/form-wrapper.jsx for filters
+- components/ui/loading-states.jsx for spinners
+
+If calculation function is missing, STOP and report error.
+Do NOT implement missing calculations.
 ```
 
 ---
@@ -522,42 +566,145 @@ DO NOT modify calculation libraries.
 ## **PHASE 6: PDF GENERATION**
 
 ```
-READ: All reports working. Now add PDF export.
+READ FIRST - CRITICAL CONSTRAINTS:
+===================================
+DO NOT MODIFY THESE FILES - THEY ARE COMPLETE AND WORKING:
+- /app/reports/page.js
+- /app/reports/aum/page.js  
+- /app/reports/performance/page.js
+- /app/reports/holdings/page.js
+- /app/reports/transactions/page.js
+- /app/api/reports/aum/route.js
+- /app/api/reports/performance/route.js
+- /app/api/reports/holdings/route.js
+- /lib/calculations/* (ALL FILES)
+- /lib/auth.js
+- /lib/permissions.js
+- /prisma/schema.prisma
+- /components/ui/* (ALL EXISTING)
 
-CREATE PDF generation system:
+IF YOU MODIFY ANY ABOVE FILE, STOP IMMEDIATELY.
+
+EXISTING FUNCTIONS YOU MUST USE (DO NOT RECREATE):
+From /lib/calculations/aum.js:
+  - calculateAUM() - returns {bop, eop, flows, marketPnL}
+From /lib/calculations/twr.js:
+  - calculateTWR() - returns {gross, net, ytd, si}
+From /lib/calculations/holdings.js:
+  - getHoldings() - returns holdings array
+From /lib/permissions.js:
+  - getViewableClients() - returns filtered clients
+  - canViewClient() - permission check
+
+CREATE ONLY THESE NEW FILES:
+=============================
 
 1. lib/pdf/generator.js
-   - Using jsPDF
-   - createQuarterlyPack(clientId, quarter, year)
-   - Cover page with client info
-   - One page per report section
-   - Page numbers, headers
+   ```javascript
+   import jsPDF from 'jspdf'
+   import { calculateAUM } from '../calculations/aum'  // USE EXISTING
+   import { calculateTWR } from '../calculations/twr'  // USE EXISTING
+   import { getHoldings } from '../calculations/holdings'  // USE EXISTING
+   
+   export async function createQuarterlyPack(clientId, quarter, year) {
+     // DO NOT reimplement calculations
+     // CALL existing functions and format results
+     const aumData = await calculateAUM(...)  // USE THIS
+     const performance = await calculateTWR(...)  // USE THIS
+     const holdings = await getHoldings(...)  // USE THIS
+     
+     const doc = new jsPDF()
+     // Format the RESULTS from above functions
+     // DO NOT recalculate anything
+   }
+   ```
 
 2. lib/pdf/formatters.js
-   - formatAUMTable(data)
-   - formatPerformanceGrid(data)
-   - formatHoldingsTable(data)
-   - Proper number formatting, totals
+   - ONLY formatting functions
+   - Receive data, return formatted strings
+   - NO calculations, NO database queries
+   - Example:
+   ```javascript
+   export function formatAUMTable(aumData) {
+     // aumData comes from calculateAUM() - DO NOT MODIFY
+     // Only format for display
+     return formatted
+   }
+   ```
 
-3. app/reports/pdf/page.js
-   - UI to generate quarterly pack
-   - Client selector
-   - Quarter/year selector
-   - Section checkboxes
-   - Generate & download button
+3. app/reports/pdf/page.js (NEW PAGE - NOT MODIFYING EXISTING)
+   - NEW route at /reports/pdf
+   - Import getViewableClients from '/lib/permissions'  // USE EXISTING
+   - Import canViewClient from '/lib/permissions'  // USE EXISTING
+   - DO NOT recreate permission logic
+   - UI elements only:
+     - Client dropdown (filtered by permissions)
+     - Quarter selector (Q1-Q4)
+     - Year input
+     - Generate button
 
-4. app/api/reports/pdf/route.js
-   - POST to generate PDF
-   - Stream response
-   - Log generation to audit
+4. app/api/reports/pdf/route.js (NEW ROUTE)
+   ```javascript
+   import { createQuarterlyPack } from '@/lib/pdf/generator'
+   import { canViewClient } from '@/lib/permissions'  // USE EXISTING
+   import { logToAxiom } from '@/lib/audit'  // USE EXISTING
+   
+   export async function POST(request) {
+     // Check permission using EXISTING function
+     if (!canViewClient(userId, clientId)) {
+       return new Response('Forbidden', { status: 403 })
+     }
+     
+     // Call PDF generator
+     const pdf = await createQuarterlyPack(...)
+     
+     // Log using EXISTING audit function
+     await logToAxiom('pdf_generated', userId, {...})
+     
+     // Stream response
+   }
+   ```
 
-5. components/reports/pdf-preview.jsx
-   - Show preview of cover page
-   - List sections to be included
+5. components/reports/pdf-preview.jsx (NEW COMPONENT)
+   - Display component only
+   - Receives props, shows preview
+   - NO business logic
+   - NO direct calculation calls
 
-Keep PDF generation simple and clean.
-Focus on readability over fancy styling.
-DO NOT modify existing report pages.
+FORBIDDEN ACTIONS:
+==================
+❌ DO NOT add PDF buttons to existing report pages
+❌ DO NOT modify any calculation functions
+❌ DO NOT recreate permission checks
+❌ DO NOT add new fields to database schema
+❌ DO NOT modify existing API routes
+❌ DO NOT create duplicate calculation logic
+❌ DO NOT import database client in PDF files
+
+IMPORT RULES:
+=============
+✅ ALWAYS import from '../calculations/aum' not recreate
+✅ ALWAYS import from '../permissions' not recreate
+✅ ALWAYS use existing validation schemas
+✅ ALWAYS use existing UI components where applicable
+
+IF SOMETHING IS MISSING:
+========================
+If you need a function that doesn't exist:
+1. STOP
+2. DO NOT implement it yourself
+3. Report: "Missing required function: [name] in [expected location]"
+
+VERIFICATION CHECKLIST:
+=======================
+Before generating code, verify:
+□ Not modifying any existing report pages
+□ Only creating the 5 new files listed
+□ Importing calculations, not recreating
+□ Using existing permission functions
+□ No database queries in PDF logic
+
+Remember: You are ADDING PDF export capability, not rebuilding the system.
 ```
 
 ---

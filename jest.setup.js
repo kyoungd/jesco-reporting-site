@@ -79,5 +79,59 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 // Mock fetch globally
 global.fetch = jest.fn()
 
+// Mock UI Components
+jest.mock('@/components/ui/button', () => ({
+  Button: ({ children, ...props }) => <button {...props}>{children}</button>
+}))
+
+jest.mock('@/components/ui/input', () => ({
+  Input: (props) => <input {...props} />
+}))
+
+jest.mock('@/components/ui/label', () => ({
+  Label: ({ children, ...props }) => <label {...props}>{children}</label>
+}))
+
+jest.mock('@/components/ui/select', () => ({
+  Select: ({ children, value, onValueChange, ...props }) => (
+    <select {...props} value={value} onChange={(e) => onValueChange?.(e.target.value)}>
+      {children}
+    </select>
+  ),
+  SelectContent: ({ children }) => <>{children}</>,
+  SelectItem: ({ children, value }) => <option value={value}>{children}</option>,
+  SelectTrigger: ({ children }) => <>{children}</>,
+  SelectValue: ({ placeholder }) => <span>{placeholder}</span>
+}))
+
+jest.mock('@/components/ui/card', () => ({
+  Card: ({ children, ...props }) => <div {...props}>{children}</div>,
+  CardContent: ({ children, ...props }) => <div {...props}>{children}</div>,
+  CardHeader: ({ children, ...props }) => <div {...props}>{children}</div>,
+  CardTitle: ({ children, ...props }) => <h2 {...props}>{children}</h2>
+}))
+
+// Mock Clerk
+jest.mock('@clerk/nextjs/server', () => ({
+  auth: jest.fn(),
+  redirectToSignIn: jest.fn()
+}))
+
+// Mock database
+jest.mock('@/lib/db', () => ({
+  db: {
+    user: {
+      findUnique: jest.fn()
+    }
+  }
+}))
+
+// Mock permissions
+jest.mock('@/lib/permissions', () => ({
+  canCreateReports: jest.fn(),
+  getViewableClients: jest.fn(),
+  canViewClient: jest.fn()
+}))
+
 // Set test environment
 process.env.NODE_ENV = 'test'

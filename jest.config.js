@@ -234,6 +234,107 @@ module.exports = {
           ]
         }]
       },
+    },
+    // Phase 5: Unit tests for reports UI (React Testing Library)
+    {
+      displayName: 'unit-reports-phase5',
+      testEnvironment: 'jsdom',
+      testMatch: ['<rootDir>/__tests__/unit/*_phase5.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+        '^lucide-react$': '<rootDir>/__tests__/__mocks__/lucide-react.js',
+      },
+      collectCoverageFrom: [
+        'app/reports/**/*.{js,jsx}',
+        'components/reports/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transformIgnorePatterns: [
+        'node_modules/(?!(@clerk|lucide-react)/)'
+      ],
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 5: Unit tests for report components (React Testing Library)
+    {
+      displayName: 'unit-components-phase5',
+      testEnvironment: 'jsdom',
+      testMatch: ['<rootDir>/__tests__/unit/components_phase5.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+        '^lucide-react$': '<rootDir>/__tests__/__mocks__/lucide-react.js',
+      },
+      collectCoverageFrom: [
+        'components/reports/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transformIgnorePatterns: [
+        'node_modules/(?!(@clerk|lucide-react)/)'
+      ],
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 5: API integration tests with real database
+    {
+      displayName: 'integration-api-phase5',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/integration/api_phase5.test.js'],
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup.js',
+        '<rootDir>/__tests__/setup/db-test-utils.js'
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      testTimeout: 30000,
+      maxWorkers: 1,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 5: Flow integration tests with real database
+    {
+      displayName: 'integration-flows-phase5',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/integration/flows_phase5.test.js'],
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup.js',
+        '<rootDir>/__tests__/setup/db-test-utils.js'
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      testTimeout: 30000,
+      maxWorkers: 1,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
     }
   ],
   collectCoverageFrom: [
