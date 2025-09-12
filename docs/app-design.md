@@ -706,122 +706,402 @@ Before generating code, verify:
 
 Remember: You are ADDING PDF export capability, not rebuilding the system.
 ```
-
----
-
-## **PHASE 7: OPERATIONAL FEATURES**
-
-```
-READ: Core system complete. Add operational features.
-
-CREATE operational tools:
-
-1. app/admin/audit/page.js
-   - View local audit log (read from database)
-   - Filter by user, action, date
-   - AXIOM is write-only, this is for debugging
-
-2. app/admin/quality/page.js
-   - Dashboard showing all QC checks
-   - Missing prices indicator
-   - AUM reconciliation status
-   - Stale benchmark warnings
-   - Links to fix issues
-
-3. app/api/jobs/daily/route.js
-   - Optional daily job endpoint
-   - Refresh materialized views
-   - Run QC checks
-   - Log to Better Stack
-
-4. lib/logging.js
-   - Wrapper for Better Stack
-   - logInfo, logError, logMetric
-   - Include context and user info
-
-5. app/admin/backup/page.js
-   - Database backup instructions
-   - Test restore procedure
-   - Document in README
-
-DO NOT modify core functionality.
-These are add-on operational features.
 ```
 
 ---
 
-## **PHASE 8: FINAL POLISH**
+**PHASE 7: OPERATIONAL FEATURES**
 
 ```
-READ: System is functionally complete. Polish UX and error handling.
+READ FIRST - CRITICAL CONSTRAINTS:
+===================================
+YOU ARE ADDING 5 NEW ADMIN PAGES ONLY. DO NOT TOUCH ANYTHING ELSE.
 
-ADD these improvements:
+DO NOT MODIFY THESE FILES/FOLDERS - THEY ARE COMPLETE:
+- /lib/calculations/* (ALL FILES - DO NOT TOUCH)
+- /lib/auth.js (DO NOT ADD METHODS)
+- /lib/permissions.js (DO NOT ADD METHODS)
+- /lib/validation.js (DO NOT ADD SCHEMAS)
+- /lib/audit.js (EXISTING - DO NOT MODIFY)
+- /app/reports/* (ALL EXISTING PAGES)
+- /app/clients/* (ALL EXISTING PAGES)
+- /app/transactions/* (ALL EXISTING PAGES)
+- /app/api/* (ALL EXISTING ROUTES)
+- /prisma/schema.prisma (DO NOT ADD TABLES/FIELDS)
+- /components/* (ALL EXISTING COMPONENTS)
+
+IF YOU NEED TO MODIFY ANY ABOVE FILE, STOP IMMEDIATELY.
+
+EXISTING FUNCTIONS YOU MUST USE (DO NOT RECREATE):
+From /lib/calculations/qc.js:
+  - checkAUMIdentity() - returns {status, messages}
+  - findMissingPrices() - returns array of missing
+  - validateBenchmarkDates() - returns validation result
+From /lib/audit.js:
+  - logToAxiom() - existing function, USE AS-IS
+  - logToDatabase() - existing function, USE AS-IS
+From /lib/permissions.js:
+  - requireRole() - existing function, USE AS-IS
+
+CREATE ONLY THESE NEW FILES:
+=============================
+
+1. lib/logging.js (NEW FILE ONLY)
+   ```javascript
+   // Better Stack wrapper ONLY
+   // DO NOT import or modify other lib files
+   export function logInfo(message, context) {
+     // Send to Better Stack
+   }
+   export function logError(error, context) {
+     // Send to Better Stack
+   }
+   export function logMetric(metric, value, context) {
+     // Send to Better Stack
+   }
+   // NO OTHER FUNCTIONS - Keep it minimal
+   ```
+
+2. app/admin/audit/page.js (NEW PAGE)
+   ```javascript
+   import { requireRole } from '@/lib/permissions' // USE EXISTING
+   import prisma from '@/lib/db' // USE EXISTING
+   
+   export default async function AuditPage() {
+     await requireRole('L5_ADMIN') // USE EXISTING FUNCTION
+     
+     // Query EXISTING AuditLog table - DO NOT modify schema
+     const logs = await prisma.auditLog.findMany({
+       // Read from EXISTING table structure
+       orderBy: { createdAt: 'desc' },
+       take: 100
+     })
+     
+     // Display UI only - no business logic
+     return (
+       // Simple table display
+       // Filter controls for user, action, date
+       // NO modifications to audit logging logic
+     )
+   }
+   ```
+
+3. app/admin/quality/page.js (NEW PAGE)
+   ```javascript
+   import { checkAUMIdentity, findMissingPrices, validateBenchmarkDates } from '@/lib/calculations/qc' // USE EXISTING
+   import { requireRole } from '@/lib/permissions' // USE EXISTING
+   
+   export default async function QualityPage() {
+     await requireRole('L4_AGENT') // Minimum L4
+     
+     // CALL existing QC functions - DO NOT reimplement
+     const aumCheck = await checkAUMIdentity(...) // USE THIS
+     const missingPrices = await findMissingPrices(...) // USE THIS
+     const benchmarkCheck = await validateBenchmarkDates(...) // USE THIS
+     
+     // Display results only - NO new calculations
+     return (
+       // Dashboard cards showing status
+       // Links to EXISTING pages for fixes
+       // DO NOT create new fix endpoints
+     )
+   }
+   ```
+
+4. app/api/jobs/daily/route.js (NEW ROUTE)
+   ```javascript
+   import { logInfo, logError } from '@/lib/logging' // From step 1
+   import { checkAUMIdentity, findMissingPrices } from '@/lib/calculations/qc' // USE EXISTING
+   import prisma from '@/lib/db' // USE EXISTING
+   
+   export async function POST(request) {
+     // Verify cron secret or admin token
+     const token = request.headers.get('X-Cron-Secret')
+     if (token !== process.env.CRON_SECRET) {
+       return new Response('Unauthorized', { status: 401 })
+     }
+     
+     try {
+       // 1. Refresh any materialized views (if they exist)
+       await prisma.$executeRaw`REFRESH MATERIALIZED VIEW CONCURRENTLY IF EXISTS daily_performance`
+       
+       // 2. Run EXISTING QC checks
+       const qcResults = await checkAUMIdentity(...) // EXISTING
+       
+       // 3. Log results
+       await logInfo('Daily job completed', { qcResults })
+       
+       return Response.json({ success: true })
+     } catch (error) {
+       await logError(error, { job: 'daily' })
+       return Response.json({ error: error.message }, { status: 500 })
+     }
+   }
+   ```
+
+5. app/admin/backup/page.js (NEW PAGE)
+   ```javascript
+   import { requireRole } from '@/lib/permissions' // USE EXISTING
+   
+   export default async function BackupPage() {
+     await requireRole('L5_ADMIN')
+     
+     // STATIC INSTRUCTIONS ONLY - No actual backup code
+     return (
+       <div>
+         <h1>Database Backup Instructions</h1>
+         <pre>{`
+# PostgreSQL Backup Commands
+
+## Backup:
+pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
+
+## Restore:
+psql $DATABASE_URL < backup_20240101.sql
+
+## Automated Backup:
+Add to crontab:
+0 2 * * * pg_dump $DATABASE_URL > /backups/backup_$(date +\\%Y\\%m\\%d).sql
+         `}</pre>
+         
+         <h2>Test Restore Procedure</h2>
+         <ol>
+           <li>Create test database</li>
+           <li>Restore backup to test</li>
+           <li>Verify data integrity</li>
+           <li>Drop test database</li>
+         </ol>
+       </div>
+     )
+   }
+   ```
+
+FORBIDDEN ACTIONS:
+==================
+❌ DO NOT add new fields to any existing database tables
+❌ DO NOT modify any existing calculation functions
+❌ DO NOT add new methods to existing lib files
+❌ DO NOT change any existing API routes
+❌ DO NOT modify any existing pages
+❌ DO NOT add admin controls to non-admin pages
+❌ DO NOT create new calculation logic
+❌ DO NOT implement actual backup functionality (instructions only)
+
+STYLING RULES:
+=============
+- Use existing Tailwind classes only
+- Use existing shadcn components where applicable
+- DO NOT create new UI components
+- DO NOT modify existing components
+
+IMPORT RULES:
+=============
+✅ Import FROM existing files
+❌ DO NOT modify the files you import from
+✅ Use existing functions AS-IS
+❌ DO NOT extend or wrap existing functions
+
+VERIFICATION BEFORE GENERATING:
+===============================
+□ Only creating 5 new files listed above
+□ Only importing from existing files
+□ Not modifying any existing files
+□ Not adding database fields
+□ Not creating new business logic
+```
+
+---
+
+## **PHASE 8 : POLISH UI**
+---
+
+## **SAFE FOR CLAUDE CODE** (Low Risk) ✅
+
+### **Phase 8A: ISOLATED NEW FILES**
+```
+CREATE ONLY THESE NEW FILES - DO NOT MODIFY ANYTHING ELSE:
+
+1. app/api/health/route.js (NEW FILE)
+   - Check database: await prisma.$queryRaw`SELECT 1`
+   - Check Clerk: verify CLERK_SECRET_KEY exists
+   - Check Better Stack: verify BETTER_STACK_SOURCE_TOKEN exists
+   - Return { status: 'healthy', services: {...} }
+
+2. lib/helpers.js (NEW FILE)
+   - formatCurrency(amount) using Intl.NumberFormat
+   - formatPercent(value, decimals) 
+   - parseDate(input) using date-fns
+   - excelColumn(index) for A-Z, AA-ZZ navigation
+   - NO imports from other lib files
+
+3. components/ui/loading-states.jsx (NEW FILE)
+   - TableSkeleton component
+   - FormSpinner component  
+   - ProgressBar component
+   - Self-contained, no dependencies
+
+4. components/ui/error-boundary.jsx (NEW FILE)
+   - Class component with componentDidCatch
+   - Log to Better Stack (import from lib/logging)
+   - Generic error display
+   - Reset button
+
+DO NOT modify any existing files.
+DO NOT import these new components anywhere yet.
+```
+
+### **Phase 8B: DOCUMENTATION ONLY**
+```
+CREATE README.md with these sections:
+
+## Setup Instructions
+- Clone repo
+- Install dependencies
+- Configure environment
+- Run migrations
+- Start development server
+
+## Environment Variables
+[List all from .env.example]
+
+## Calculation Formulas
+- TWR: [formula]
+- AUM Identity: [formula]
+- Fee Accrual: [formula]
+
+## Database Backup
+- PostgreSQL backup commands
+- Restore procedure
+- Testing restore
+
+## Seed Data
+```bash
+# Simple seed script
+npx prisma db seed
+```
+
+This is PURE DOCUMENTATION - zero code risk.
+```
+
+---
+
+## **MANUAL INTERVENTION REQUIRED** (High Risk) 🟡
+
+### **Phase 8C: CAREFUL PAGE UPDATES**
+
+*speaks very seriously*
+
+These need SURGICAL precision. Do NOT give to Claude Code in bulk!
+
+```
+MANUAL APPROACH - One page at a time:
+
+1. Pick ONE page (e.g., app/clients/page.js)
+2. Manually add at TOP of component:
+   - import { TableSkeleton } from '@/components/ui/loading-states'
+   - import ErrorBoundary from '@/components/ui/error-boundary'
+3. Wrap return with ErrorBoundary
+4. Add loading state with Suspense
+5. TEST that page still works
+6. COMMIT before moving to next page
+
+REPEAT for each page individually!
+```
+
+### **Phase 8D: TOAST NOTIFICATIONS**
+
+*grimaces*
+
+This requires adding toast provider to layout.js - VERY DANGEROUS!
+
+```
+MANUAL STEPS:
+1. Install sonner: npm install sonner
+2. Manually edit app/layout.js:
+   - Add <Toaster /> at end of body
+3. In each form submission, add:
+   - import { toast } from 'sonner'
+   - toast.success() or toast.error()
+   
+Do this MANUALLY, one form at a time!
+```
+
+---
+
+## **DO NOT ATTEMPT WITH CLAUDE CODE** (Extreme Risk) 🔴
+
+### **FORBIDDEN TERRITORY:**
+
+1. **"Update all pages"** - Will destroy everything
+2. **Keyboard shortcuts across app** - Requires global provider changes
+3. **Modifying existing error handling** - Will break working code
+4. **Adding Suspense boundaries everywhere** - React hydration nightmares
+
+---
+
+## **RECOMMENDED EXECUTION SEQUENCE:**
+
+*taps clipboard with authority*
+
+```
+SAFE SEQUENCE:
+
+1. Run Phase 8A with Claude Code (new files only)
+2. Run Phase 8B with Claude Code (README only)
+3. STOP Claude Code
+
+MANUAL SEQUENCE:
+
+4. Manually integrate ErrorBoundary into 2-3 critical pages
+5. Manually add loading states to highest-traffic pages only
+6. Skip keyboard shortcuts for MVP
+7. Add basic toast to form submissions (manually, one by one)
+```
+
+---
+
+## **REVISED PHASE 8 INSTRUCTION FOR CLAUDE CODE:**
+
+*writes with precision*
+
+```
+PHASE 8A - SAFE POLISH (NEW FILES ONLY)
+
+CREATE ONLY THESE NEW FILES - DO NOT MODIFY ANYTHING:
 
 1. app/api/health/route.js
-   - Health check endpoint
-   - Check database connection
-   - Check external service status
+   - Database health check
+   - Service status checks
+   - Return JSON status
 
-2. components/ui/error-boundary.jsx
-   - Catch and display errors gracefully
-   - Log errors to Better Stack
-   - Show user-friendly message
+2. lib/helpers.js  
+   - formatCurrency(amount, currency = 'USD')
+   - formatPercent(value, decimals = 2)
+   - parseDate(input) 
+   - excelColumn(index)
 
 3. components/ui/loading-states.jsx
-   - Skeleton loaders for tables
-   - Spinner for forms
-   - Progress bar for bulk operations
+   - export function TableSkeleton({ rows = 5, columns = 4 })
+   - export function FormSpinner({ size = 'md' })
+   - export function ProgressBar({ value, max })
 
-4. lib/helpers.js
-   - formatCurrency(amount)
-   - formatPercent(value, decimals)
-   - parseDate(input)
-   - Excel column navigation (A-Z, AA-ZZ)
+4. components/ui/error-boundary.jsx
+   - Class component with error catching
+   - Log to Better Stack
+   - Friendly error display
 
-5. Update all pages:
-   - Add loading states
-   - Add error boundaries
-   - Add toast notifications for success/error
-   - Add keyboard shortcuts help (? key)
-
-6. Create README.md with:
-   - Setup instructions
-   - Environment variables
-   - Seed data script
+5. README.md
+   - Complete setup guide
+   - All environment variables
    - Calculation formulas
    - Backup procedures
+   - NO code in README, just documentation
 
-This is final polish pass.
-DO NOT change core logic.
-ONLY improve UX and error handling.
+DO NOT:
+- Import these components anywhere
+- Modify ANY existing files
+- Add providers to layout
+- Change existing logic
+
+This creates the tools. Manual integration follows.
 ```
-
----
-
-*stands back and admires the precisely organized phases*
-
-**EXECUTION NOTES:**
-
-*speaks sternly*
-
-1. Run phases IN ORDER. No skipping like lazy gymnast!
-2. After EACH phase, test that it works before proceeding
-3. If Claude Code tries to modify previous work, STOP IT immediately with: "DO NOT modify [file]. Only add new files listed."
-4. Save each phase output in separate folder for recovery
-
-**IF CLAUDE CODE GOES ROGUE:**
-
-```
-STOP! You are modifying files from previous phases.
-RESTORE original [filename] and ONLY create:
-- [specific new file]
-- [specific new file]
-```
-
-*stamps each page with authority*
-
-This is your routine sheet. Follow it exactly. Each phase builds on previous - like learning back handspring before back tuck. No shortcuts!
-
-You want me to adjust any phase? Or this is precise enough for competition?
-
-*clicks pen with finality*

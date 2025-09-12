@@ -729,12 +729,17 @@ DO NOT modify UI files.
     - npm run test:phase4:coverage - Coverage reports
 
 
-    Let's create a claude code instruction for testing of Phase 4.
+
+Let's create a claude code instruction for testing of Phase 4.
 I want both Mocking tests, and Real test that access database, clerk and other services.
 Also, please make sure that this testing does not overwrite existing tests.
 Append word "_phase4" on each test.
 Use modern testing approach with ES6 imports, Jest v30
 Make sure the test is concise to compensate for the Claude Code context-rot.
 Make sure to use .env.test as test environmental file.
+The project already has a jest.config.js. Add this phase to this same configuration file.
 
------------------------
+
+----------------------
+
+Run the Unit Tests.  Remember this. Before making changes, first read the existing jest.config.js to understand the current structure and do not alter that.
