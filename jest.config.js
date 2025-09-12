@@ -410,6 +410,107 @@ module.exports = {
           ]
         }]
       },
+    },
+    // Phase 7: Unit tests for logging (Node environment)
+    {
+      displayName: 'unit-logging-phase7',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/lib/logging_phase7.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      collectCoverageFrom: [
+        'lib/logging.js',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 7: Unit tests for admin components (React Testing Library)
+    {
+      displayName: 'unit-admin-phase7',
+      testEnvironment: 'jsdom',
+      testMatch: ['<rootDir>/__tests__/app/admin/*_phase7.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+        '^lucide-react$': '<rootDir>/__tests__/__mocks__/lucide-react.js',
+      },
+      collectCoverageFrom: [
+        'app/admin/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transformIgnorePatterns: [
+        'node_modules/(?!(@clerk|lucide-react)/)' 
+      ],
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 7: Unit tests for daily job API (Node environment)
+    {
+      displayName: 'unit-jobs-phase7',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/api/jobs/daily_phase7.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      collectCoverageFrom: [
+        'app/api/jobs/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 7: Integration tests for operational features
+    {
+      displayName: 'integration-phase7',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/integration/**/*_phase7.integration.test.js'],
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup.js',
+        '<rootDir>/__tests__/setup/db-test-utils.js'
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      collectCoverageFrom: [
+        'app/api/jobs/**/*.{js,jsx}',
+        'lib/logging.js',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 30000,
+      maxWorkers: 1,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
     }
   ],
   collectCoverageFrom: [
