@@ -19,6 +19,12 @@ enum UserLevel {
   L2_CLIENT
 }
 
+enum ProfileStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  SUSPENDED
+}
+
 enum AssetClass {
   EQUITY
   FIXED_INCOME
@@ -87,6 +93,12 @@ model ClientProfile {
   country         String?           @default("US")
   timeZone        String?           @default("America/New_York")
   isActive        Boolean           @default(true)
+  clerkUserId     String?           @unique
+  inviteToken     String?           @unique
+  inviteExpiry    DateTime?
+  status          ProfileStatus     @default(PENDING_ACTIVATION)
+  invitedBy       String?
+  activatedAt     DateTime?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 

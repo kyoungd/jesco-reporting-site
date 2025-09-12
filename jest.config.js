@@ -185,6 +185,55 @@ module.exports = {
         '!**/*.d.ts',
       ],
       testTimeout: 10000,
+    },
+    // Phase 4A: Unit tests for authentication/invitation system (Node environment)
+    {
+      displayName: 'unit-auth-phase4a',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/unit/*_phase4a.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      collectCoverageFrom: [
+        'lib/email.js',
+        'middleware.js',
+        'app/api/invites/**/*.{js,jsx}',
+        'app/api/auth/**/*.{js,jsx}',
+        '!**/*.d.ts',
+      ],
+      testTimeout: 10000,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
+    },
+    // Phase 4A: Integration tests for authentication with real database
+    {
+      displayName: 'integration-auth-phase4a',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/integration/*_phase4a.test.js'],
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup.js',
+        '<rootDir>/__tests__/setup/db-test-utils.js'
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      testTimeout: 30000,
+      maxWorkers: 1,
+      transform: {
+        '^.+\\.(js|jsx)$': ['babel-jest', {
+          presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            ['@babel/preset-react', { runtime: 'automatic' }]
+          ]
+        }]
+      },
     }
   ],
   collectCoverageFrom: [

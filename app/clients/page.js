@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { DataTable } from '@/components/ui/data-table'
-import { PlusIcon, UsersIcon, BuildingOfficeIcon } from 'lucide-react'
+import { PlusIcon, UsersIcon, BuildingOfficeIcon, XMarkIcon } from 'lucide-react'
 
 const ClientHierarchyBadge = ({ client }) => {
   if (client.level === 'L5_ADMIN') {
@@ -68,11 +68,18 @@ export default function ClientsPage() {
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showWelcome, setShowWelcome] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     fetchClients()
-  }, [])
+    
+    // Check if this is a welcome redirect
+    if (searchParams.get('welcome') === 'true') {
+      setShowWelcome(true)
+    }
+  }, [searchParams])
 
   const fetchClients = async () => {
     try {
@@ -205,6 +212,50 @@ export default function ClientsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Banner */}
+        {showWelcome && (
+          <div className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg rounded-lg">
+            <div className="px-6 py-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-8 w-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-white">
+                      Welcome to Jesco Investment Reporting! 🎉
+                    </h3>
+                    <p className="mt-1 text-sm text-blue-100">
+                      Your account has been successfully activated. You now have access to the full platform including 
+                      client management, investment reporting, and portfolio analytics.
+                    </p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs text-blue-100">
+                        <strong>Next steps:</strong>
+                      </p>
+                      <ul className="text-xs text-blue-100 space-y-1">
+                        <li>• Explore your client dashboard and available features</li>
+                        <li>• Review your profile settings and contact information</li>
+                        <li>• Contact support if you need any assistance getting started</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowWelcome(false)}
+                  className="flex-shrink-0 text-blue-100 hover:text-white transition-colors"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
           <div>

@@ -13,6 +13,7 @@ export default function NewClientPage() {
   const [availableOrganizations, setAvailableOrganizations] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [inviteMode, setInviteMode] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -52,21 +53,48 @@ export default function NewClientPage() {
   }
 
   const handleSubmit = async (data) => {
-    const response = await fetch('/api/clients', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
+    // Use invitation mode state
+    if (inviteMode) {
+      // Send invitation instead of creating client directly
+      const response = await fetch('/api/invites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: data.companyName,
+          contactName: data.contactName,
+          email: data.email, // This will need to be collected from the form
+          level: data.level,
+          expiryDays: 7
+        }),
+      })
 
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Failed to create client')
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to send invitation')
+      }
+
+      // Redirect to invitations list or show success message
+      router.push('/clients?invited=true')
+    } else {
+      // Create client directly (existing functionality)
+      const response = await fetch('/api/clients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create client')
+      }
+
+      const newClient = await response.json()
+      router.push(`/clients/${newClient.id}`)
     }
-
-    const newClient = await response.json()
-    router.push(`/clients/${newClient.id}`)
   }
 
   const levelOptions = [
@@ -108,10 +136,49 @@ export default function NewClientPage() {
               Back to Clients
             </Link>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Create New Client</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {inviteMode ? 'Send Client Invitation' : 'Create New Client'}
+          </h1>
           <p className="mt-1 text-sm text-gray-600">
-            Add a new client profile to the system
+            {inviteMode 
+              ? 'Send an invitation to a new client to join the platform'
+              : 'Add a new client profile to the system'
+            }
           </p>
+          
+          {/* Mode Toggle */}
+          <div className="mt-4">
+            <div className="flex items-center space-x-4">
+              <button
+                type="button"
+                onClick={() => setInviteMode(false)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                  !inviteMode 
+                    ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Direct Creation
+              </button>
+              <button
+                type="button"
+                onClick={() => setInviteMode(true)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                  inviteMode 
+                    ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Send Invitation
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              {inviteMode 
+                ? 'Client will receive an email invitation to create their account'
+                : 'Create the client profile directly with existing user credentials'
+              }
+            </p>
+          </div>
         </div>
 
         {/* Form */}
@@ -119,8 +186,8 @@ export default function NewClientPage() {
           <FormWrapper
             schema={clientProfileSchema}
             onSubmit={handleSubmit}
-            submitText="Create Client"
-            successMessage="Client created successfully!"
+            submitText={inviteMode ? "Send Invitation" : "Create Client"}
+            successMessage={inviteMode ? "Invitation sent successfully!" : "Client created successfully!"}
             defaultValues={{
               level: USER_LEVELS.L2_CLIENT,
               country: 'US',
@@ -139,15 +206,30 @@ export default function NewClientPage() {
                         Basic Information
                       </h3>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <FormField
-                          label="User ID"
-                          name="userId"
-                          placeholder="Enter Clerk user ID"
-                          register={register}
-                          error={errors.userId}
-                          required
-                          description="The Clerk user ID for this client profile"
-                        />
+                        {!inviteMode && (
+                          <FormField
+                            label="User ID"
+                            name="userId"
+                            placeholder="Enter Clerk user ID"
+                            register={register}
+                            error={errors.userId}
+                            required
+                            description="The Clerk user ID for this client profile"
+                          />
+                        )}
+                        
+                        {inviteMode && (
+                          <FormField
+                            label="Email Address"
+                            name="email"
+                            type="email"
+                            placeholder="Enter email address"
+                            register={register}
+                            error={errors.email}
+                            required
+                            description="Email address to send the invitation to"
+                          />
+                        )}
                         
                         <FormField
                           label="Level"
