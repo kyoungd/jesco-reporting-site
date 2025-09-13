@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { DataTable } from '@/components/ui/data-table'
-import { PlusIcon, UsersIcon, BuildingOfficeIcon, XMarkIcon } from 'lucide-react'
+import { Plus, Users, Building2, X } from 'lucide-react'
 
 const ClientHierarchyBadge = ({ client }) => {
   if (client.level === 'L5_ADMIN') {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-        <BuildingOfficeIcon className="h-3 w-3 mr-1" />
+        <Building2 className="h-3 w-3 mr-1" />
         Admin
       </span>
     )
@@ -19,7 +19,7 @@ const ClientHierarchyBadge = ({ client }) => {
   if (client.level === 'L4_AGENT') {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-        <UsersIcon className="h-3 w-3 mr-1" />
+        <Users className="h-3 w-3 mr-1" />
         Agent
       </span>
     )
@@ -29,7 +29,7 @@ const ClientHierarchyBadge = ({ client }) => {
     const subClientCount = client.subClients?.length || 0
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-        <UsersIcon className="h-3 w-3 mr-1" />
+        <Users className="h-3 w-3 mr-1" />
         Client {subClientCount > 0 && `(${subClientCount} sub)`}
       </span>
     )
@@ -249,7 +249,7 @@ export default function ClientsPage() {
                   onClick={() => setShowWelcome(false)}
                   className="flex-shrink-0 text-blue-100 hover:text-white transition-colors"
                 >
-                  <XMarkIcon className="h-5 w-5" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -269,7 +269,7 @@ export default function ClientsPage() {
               href="/clients/new"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              <PlusIcon className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               New Client
             </Link>
           </div>
@@ -282,7 +282,7 @@ export default function ClientsPage() {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <UsersIcon className="h-6 w-6 text-gray-400" />
+                    <Users className="h-6 w-6 text-gray-400" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -302,7 +302,7 @@ export default function ClientsPage() {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <BuildingOfficeIcon className="h-6 w-6 text-gray-400" />
+                    <Building2 className="h-6 w-6 text-gray-400" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -322,7 +322,7 @@ export default function ClientsPage() {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <UsersIcon className="h-6 w-6 text-gray-400" />
+                    <Users className="h-6 w-6 text-gray-400" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>

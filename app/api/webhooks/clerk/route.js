@@ -1,7 +1,7 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { db } from '../../../../lib/db.js'
+import { db } from '@/lib/db'
 
 export async function POST(req) {
   // Get the headers
