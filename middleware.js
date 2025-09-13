@@ -11,8 +11,11 @@ export default authMiddleware({
     "/api/webhooks/(.*)",
     "/api/health",
     "/api/invites/validate",
+    "/api/admin/init",
     "/pending-activation",
-    "/account-suspended"
+    "/account-suspended",
+    "/request-invitation",
+    "/api/request-invitation"
   ],
   ignoredRoutes: [
     "/api/webhooks/(.*)",
