@@ -38,9 +38,19 @@ export default function NewClientPage() {
         setAvailableParents(parentOptions)
       }
 
-      // TODO: Fetch organizations when that API is available
-      // For now, we'll leave organizations empty
-      setAvailableOrganizations([])
+      // Fetch available organizations
+      const orgsResponse = await fetch('/api/organizations')
+      if (orgsResponse.ok) {
+        const organizations = await orgsResponse.json()
+        const orgOptions = organizations.map(org => ({
+          value: org.id,
+          label: `${org.name} - ${org.description}`
+        }))
+        setAvailableOrganizations(orgOptions)
+      } else {
+        console.warn('Failed to fetch organizations')
+        setAvailableOrganizations([])
+      }
       
       // TODO: Fetch current user info for default values
       // For now, we'll handle this in the form logic
@@ -191,7 +201,8 @@ export default function NewClientPage() {
             defaultValues={{
               level: USER_LEVELS.L2_CLIENT,
               country: 'US',
-              isActive: true
+              isActive: true,
+              organizationId: availableOrganizations.find(org => org.label.includes('JESCO'))?.value || ''
             }}
           >
             {({ register, errors, watch, setValue }) => {

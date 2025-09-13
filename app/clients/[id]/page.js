@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  ArrowLeftIcon, 
-  PencilIcon, 
-  UsersIcon, 
-  BuildingOfficeIcon,
-  PhoneIcon,
-  MapPinIcon,
-  MailIcon,
-  CalendarIcon
+  ArrowLeft, 
+  Edit, 
+  Users, 
+  Building2,
+  Phone,
+  MapPin,
+  Mail,
+  Calendar
 } from 'lucide-react'
 import { USER_LEVEL_NAMES } from '@/lib/constants'
 
@@ -142,7 +142,7 @@ export default function ClientDetailsPage() {
               href="/clients"
               className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
             >
-              <ArrowLeftIcon className="h-4 w-4 mr-1" />
+              <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Clients
             </Link>
           </div>
@@ -167,7 +167,7 @@ export default function ClientDetailsPage() {
                 href={`/clients/${client.id}/edit`}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
               >
-                <PencilIcon className="h-4 w-4 mr-2" />
+                <Edit className="h-4 w-4 mr-2" />
                 Edit Client
               </Link>
             </div>
@@ -187,12 +187,12 @@ export default function ClientDetailsPage() {
                   <InfoRow 
                     label="Company Name" 
                     value={client.companyName}
-                    icon={BuildingOfficeIcon}
+                    icon={Building2}
                   />
                   <InfoRow 
                     label="Contact Name" 
                     value={client.contactName}
-                    icon={UsersIcon}
+                    icon={Users}
                   />
                   <InfoRow 
                     label="SECDEX Code" 
@@ -216,19 +216,19 @@ export default function ClientDetailsPage() {
                   <InfoRow 
                     label="Phone" 
                     value={client.phone}
-                    icon={PhoneIcon}
+                    icon={Phone}
                   />
                   {client.user && (
                     <InfoRow 
                       label="Email" 
                       value={client.user.email}
-                      icon={MailIcon}
+                      icon={Mail}
                     />
                   )}
                   <InfoRow 
                     label="Address" 
                     value={client.address}
-                    icon={MapPinIcon}
+                    icon={MapPin}
                   />
                   <InfoRow 
                     label="City" 
@@ -261,12 +261,12 @@ export default function ClientDetailsPage() {
                     <InfoRow 
                       label="Name" 
                       value={`${client.user.firstName} ${client.user.lastName}`}
-                      icon={UsersIcon}
+                      icon={Users}
                     />
                     <InfoRow 
                       label="Email" 
                       value={client.user.email}
-                      icon={MailIcon}
+                      icon={Mail}
                     />
                   </dl>
                 </div>
@@ -347,12 +347,12 @@ export default function ClientDetailsPage() {
                   <InfoRow 
                     label="Created" 
                     value={client.createdAt ? new Date(client.createdAt).toLocaleDateString() : '-'}
-                    icon={CalendarIcon}
+                    icon={Calendar}
                   />
                   <InfoRow 
                     label="Last Updated" 
                     value={client.updatedAt ? new Date(client.updatedAt).toLocaleDateString() : '-'}
-                    icon={CalendarIcon}
+                    icon={Calendar}
                   />
                   <InfoRow 
                     label="Status" 
