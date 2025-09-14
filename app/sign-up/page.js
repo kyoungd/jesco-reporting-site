@@ -11,8 +11,11 @@ export default function SignUpPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { isSignedIn } = useAuth()
-  
-  const inviteToken = searchParams.get('invite_token')
+
+  // Check for Clerk invitation parameters
+  const clerkTicket = searchParams.get('__clerk_ticket')
+  const clerkStatus = searchParams.get('__clerk_status')
+  const isClerkInvitation = clerkTicket && clerkStatus === 'sign_up'
 
   useEffect(() => {
     // If user is already signed in, redirect to clients
@@ -21,37 +24,20 @@ export default function SignUpPage() {
       return
     }
 
-    // If no invite token, show error
-    if (!inviteToken) {
-      setInviteStatus('no_token')
+    // If this is a Clerk invitation URL, allow sign-up
+    if (isClerkInvitation) {
+      setInviteStatus('valid')
+      setInviteData({
+        source: 'clerk_invitation',
+        ticket: clerkTicket
+      })
       return
     }
 
-    validateInviteToken()
-  }, [inviteToken, isSignedIn, router])
+    // No valid invitation found
+    setInviteStatus('no_token')
+  }, [isClerkInvitation, clerkTicket, isSignedIn, router])
 
-  const validateInviteToken = async () => {
-    try {
-      const response = await fetch(`/api/invites/validate?token=${inviteToken}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Invalid invitation token')
-      }
-
-      if (data.expired) {
-        setInviteStatus('expired')
-        return
-      }
-
-      setInviteData(data)
-      setInviteStatus('valid')
-
-    } catch (err) {
-      setInviteStatus('invalid')
-      setError(err.message)
-    }
-  }
 
   const getContent = () => {
     switch (inviteStatus) {
@@ -144,30 +130,21 @@ export default function SignUpPage() {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-green-800">
-                    Valid Invitation
+                    Welcome to Jesco Investment Reporting
                   </h3>
                   <div className="mt-1 text-sm text-green-700">
-                    {inviteData && (
-                      <div>
-                        <p><strong>Company:</strong> {inviteData.companyName}</p>
-                        <p><strong>Contact:</strong> {inviteData.contactName}</p>
-                        <p>You're invited to create your Jesco Investment Reporting account.</p>
-                      </div>
-                    )}
+                    <p>You have been invited to create your account. Please complete the sign-up process below.</p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white">
-              <SignUp 
-                path="/sign-up" 
-                routing="path" 
+              <SignUp
+                path="/sign-up"
+                routing="path"
                 signInUrl="/sign-in"
                 redirectUrl="/clients?welcome=true"
-                initialValues={{
-                  emailAddress: inviteData?.email || ''
-                }}
                 appearance={{
                   elements: {
                     formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-sm normal-case',
