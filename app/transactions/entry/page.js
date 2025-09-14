@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useSearchParams } from 'next/navigation'
-import { 
-  getTransactionTypeInfo, 
+import { InputPageLayout } from '@/components/layout/input-page-layout'
+import {
+  getTransactionTypeInfo,
   getEntryStatusInfo,
   calculateTransactionFields,
-  validateTransaction 
+  validateTransaction
 } from '@/lib/transactions'
 
 export default function TransactionEntryPage() {
@@ -656,12 +657,13 @@ export default function TransactionEntryPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          {editId ? 'Edit Transaction' : 'Transaction Entry'}
-        </h1>
-        <div className="space-x-2">
+    <InputPageLayout
+      title={editId ? 'Edit Transaction' : 'Transaction Entry'}
+      description="Enter and manage investment transactions for the selected account"
+    >
+      <div className="space-y-6">
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-2">
           <button
             onClick={handleSave}
             disabled={saving}
@@ -779,6 +781,6 @@ export default function TransactionEntryPage() {
           <div><kbd className="bg-gray-200 px-2 py-1 rounded">Del</kbd> Clear cell</div>
         </div>
       </div>
-    </div>
+    </InputPageLayout>
   )
 }

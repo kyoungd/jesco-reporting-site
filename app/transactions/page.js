@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
-import { 
-  getTransactionTypeInfo, 
-  getEntryStatusInfo 
+import {
+  getTransactionTypeInfo,
+  getEntryStatusInfo
 } from '@/lib/transactions'
+import { InputPageLayout } from '@/components/layout/input-page-layout'
 
 export default function TransactionsPage() {
   const { user, isLoaded } = useUser()
@@ -224,10 +225,18 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <InputPageLayout
+      title="Transactions"
+      description="View and manage transaction history"
+    >
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Transactions</h1>
-        <Link 
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Transaction List</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Browse and filter transactions for the selected account
+          </p>
+        </div>
+        <Link
           href="/transactions/entry"
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
         >
@@ -544,6 +553,6 @@ export default function TransactionsPage() {
           <div><kbd className="bg-gray-200 px-2 py-1 rounded">Tab</kbd> Move between filters</div>
         </div>
       </div>
-    </div>
+    </InputPageLayout>
   )
 }

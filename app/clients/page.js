@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { DataTable } from '@/components/ui/data-table'
 import { AccountHeader } from '@/components/account/account-header'
+import { NavigationMenu } from '@/components/account/navigation-menu'
 import { Plus, Users, Building2, X } from 'lucide-react'
 
 const ClientHierarchyBadge = ({ client }) => {
@@ -284,6 +285,7 @@ export default function ClientsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <AccountHeader />
+      <NavigationMenu />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Banner */}
         {showWelcome && (

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { format, subDays, parseISO, isValid } from 'date-fns'
-import { 
+import {
   ChevronLeftIcon,
   TrendingUpIcon,
   CalendarIcon,
@@ -12,6 +12,7 @@ import {
   LineChartIcon,
   PlusIcon
 } from 'lucide-react'
+import { InputPageLayout } from '@/components/layout/input-page-layout'
 
 export default function PriceSeriesPage() {
   const router = useRouter()
@@ -247,40 +248,41 @@ export default function PriceSeriesPage() {
   const hasChanges = Object.keys(changes).length > 0
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Link
-                href="/prices"
-                className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mr-4"
-              >
-                <ChevronLeftIcon className="h-4 w-4 mr-1" />
-                Back to Prices
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Price Series Entry
-                </h1>
-                <p className="text-gray-600 mt-2">
-                  Enter prices across multiple dates for a single security
-                </p>
-              </div>
+    <InputPageLayout
+      title="Price Series"
+      description="Manage price series and historical data"
+    >
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <Link
+              href="/prices"
+              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mr-4"
+            >
+              <ChevronLeftIcon className="h-4 w-4 mr-1" />
+              Back to Prices
+            </Link>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Price Series Entry
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Enter prices across multiple dates for a single security
+              </p>
             </div>
-            
-            {hasChanges && (
-              <button
-                onClick={savePrices}
-                disabled={saving}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-              >
-                <SaveIcon className="h-4 w-4 mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            )}
           </div>
+
+          {hasChanges && (
+            <button
+              onClick={savePrices}
+              disabled={saving}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            >
+              <SaveIcon className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          )}
         </div>
 
         {error && (
@@ -468,6 +470,6 @@ export default function PriceSeriesPage() {
           </div>
         )}
       </div>
-    </div>
+    </InputPageLayout>
   )
 }

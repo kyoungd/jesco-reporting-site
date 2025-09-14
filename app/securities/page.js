@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Search, Plus, Edit2, Trash2, Filter, Eye, EyeOff } from 'lucide-react'
 import { ASSET_CLASSES, ASSET_CLASS_NAMES, CURRENCIES, CURRENCY_SYMBOLS } from '@/lib/constants'
+import { InputPageLayout } from '@/components/layout/input-page-layout'
 
 export default function SecuritiesPage() {
   const { user, isLoaded } = useUser()
@@ -164,12 +165,15 @@ export default function SecuritiesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <InputPageLayout
+      title="Securities"
+      description="Manage securities master data"
+    >
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Securities Management</h1>
-          <p className="text-gray-600 mt-1">Manage securities, tickers, and asset classes</p>
+          <h2 className="text-xl font-semibold text-gray-900">Securities Management</h2>
+          <p className="text-sm text-gray-600 mt-1">Manage securities, tickers, and asset classes</p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
@@ -480,7 +484,7 @@ export default function SecuritiesPage() {
           </div>
         </div>
       )}
-    </div>
+    </InputPageLayout>
   )
 }
 

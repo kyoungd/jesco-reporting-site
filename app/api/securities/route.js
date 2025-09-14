@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs'
 import { getCurrentUser } from '@/lib/auth'
-import { checkPermission } from '@/lib/permissions'
+import { checkPermission, hasAgentAccess } from '@/lib/permissions'
 import { validateSecurityData } from '@/lib/validation'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 import { USER_LEVELS, ASSET_CLASSES } from '@/lib/constants'
 
 export async function GET(req) {
@@ -25,7 +25,7 @@ export async function GET(req) {
     }
 
     // Check permission to view securities
-    if (!checkPermission(user.level, 'view', 'security')) {
+    if (!checkPermission(user?.clientProfile?.level, 'view', 'security')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
         { status: 403 }
@@ -66,7 +66,7 @@ export async function GET(req) {
     }
 
     const [securities, total] = await Promise.all([
-      prisma.security.findMany({
+      db.security.findMany({
         where,
         orderBy: [
           { symbol: 'asc' }
@@ -86,7 +86,7 @@ export async function GET(req) {
           }
         }
       }),
-      prisma.security.count({ where })
+      db.security.count({ where })
     ])
 
     return NextResponse.json({
@@ -126,7 +126,7 @@ export async function POST(req) {
     }
 
     // Check permission to create securities
-    if (!checkPermission(user.level, 'create', 'security')) {
+    if (!checkPermission(user?.clientProfile?.level, 'create', 'security')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions to create securities' },
         { status: 403 }
@@ -148,7 +148,7 @@ export async function POST(req) {
 
     try {
       // Create security with unique symbol constraint
-      const security = await prisma.security.create({
+      const security = await db.security.create({
         data: {
           symbol: securityData.symbol.toUpperCase(),
           name: securityData.name,

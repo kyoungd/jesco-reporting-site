@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Search, Plus, Eye, Filter, Building2, CreditCard, TrendingUp, DollarSign } from 'lucide-react'
 import { ACCOUNT_TYPES, ACCOUNT_TYPE_NAMES, USER_LEVELS } from '@/lib/constants'
+import { InputPageLayout } from '@/components/layout/input-page-layout'
 
 export default function AccountsPage() {
   const { user, isLoaded } = useUser()
@@ -74,12 +75,15 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <InputPageLayout
+      title="Accounts"
+      description="Manage client accounts and account setup"
+    >
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Account Management</h1>
-          <p className="text-gray-600 mt-1">Manage master accounts and client accounts</p>
+          <h2 className="text-xl font-semibold text-gray-900">Account Management</h2>
+          <p className="text-sm text-gray-600 mt-1">Manage master accounts and client accounts</p>
         </div>
         {canCreateAccounts && (
           <button
@@ -314,6 +318,6 @@ export default function AccountsPage() {
           </div>
         </div>
       )}
-    </div>
+    </InputPageLayout>
   )
 }
