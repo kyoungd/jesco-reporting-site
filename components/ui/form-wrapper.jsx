@@ -164,33 +164,47 @@ const FormField = ({
   )
 }
 
-const SubmitButton = ({ 
-  children, 
-  loading = false, 
-  disabled = false, 
+const SubmitButton = ({
+  children,
+  loading = false,
+  disabled = false,
   variant = 'primary',
   size = 'md',
   className,
-  ...props 
+  ...props
 }) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors'
-  
+
   const variants = {
     primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 disabled:bg-indigo-400',
     secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-indigo-500 disabled:bg-gray-100',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-red-400'
   }
-  
+
   const sizes = {
     sm: 'px-3 py-2 text-sm',
     md: 'px-4 py-2 text-sm',
     lg: 'px-6 py-3 text-base'
   }
 
+  const handleClick = (e) => {
+    console.log('🔘 SUBMIT BUTTON CLICKED')
+    console.log('🔘 Button disabled:', disabled || loading)
+    console.log('🔘 Button loading:', loading)
+    console.log('🔘 Event:', e)
+
+    // Call any onClick handler that was passed
+    if (props.onClick) {
+      console.log('🔘 Calling custom onClick handler')
+      props.onClick(e)
+    }
+  }
+
   return (
     <button
       type="submit"
       disabled={disabled || loading}
+      onClick={handleClick}
       className={cn(
         baseClasses,
         variants[variant],
@@ -309,7 +323,7 @@ export function FormWrapper({
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     reset,
     watch,
     setValue,
@@ -321,21 +335,32 @@ export function FormWrapper({
     mode: 'onChange'
   })
 
+  // Log validation state changes
+  console.log('📝 FORM STATE:', { errors, isValid, isSubmitting })
+
   const isLoading = loading || isSubmitting || submitLoading
 
   const handleFormSubmit = async (data) => {
+    console.log('📝 FORM WRAPPER: handleFormSubmit called')
+    console.log('📝 FORM WRAPPER: Form data:', data)
+    console.log('📝 FORM WRAPPER: Form errors:', errors)
+
     try {
       setSubmitLoading(true)
       setFormMessage(null)
+      console.log('📝 FORM WRAPPER: Calling onSubmit with data:', data)
       await onSubmit(data)
+      console.log('📝 FORM WRAPPER: onSubmit completed successfully')
       if (successMessage) {
         setFormMessage({ type: 'success', message: successMessage })
       }
     } catch (error) {
+      console.error('📝 FORM WRAPPER: Error in handleFormSubmit:', error)
       const message = error.message || errorMessage || 'An error occurred while submitting the form'
       setFormMessage({ type: 'error', message })
     } finally {
       setSubmitLoading(false)
+      console.log('📝 FORM WRAPPER: Form submission completed')
     }
   }
 
@@ -374,9 +399,15 @@ export function FormWrapper({
         />
       )}
 
-      <form 
+      <form
         onSubmit={handleSubmit(handleFormSubmit)}
         className={cn('space-y-6', formClassName)}
+        onInvalid={(e) => {
+          console.log('📝 FORM VALIDATION FAILED')
+          console.log('📝 Invalid event:', e)
+          console.log('📝 Form errors:', errors)
+          console.log('📝 All form values:', getValues())
+        }}
       >
         <div className="space-y-4">
           {typeof children === 'function' ? children(formProps) : children}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FormWrapper, FormField } from '@/components/ui/form-wrapper'
-import { clientProfileSchema } from '@/lib/validation'
+import { clientProfileSchema, clientInvitationSchema } from '@/lib/validation'
 import { USER_LEVELS, USER_LEVEL_NAMES } from '@/lib/constants'
 import { ArrowLeftIcon } from 'lucide-react'
 
@@ -63,47 +63,99 @@ export default function NewClientPage() {
   }
 
   const handleSubmit = async (data) => {
-    // Use invitation mode state
-    if (inviteMode) {
-      // Send invitation instead of creating client directly
-      const response = await fetch('/api/invites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+    console.log('🚀 FORM SUBMIT STARTED')
+    console.log('📊 Form data received:', data)
+    console.log('📧 Invite mode:', inviteMode)
+    
+    try {
+      // Use invitation mode state
+      if (inviteMode) {
+        console.log('📨 INVITATION MODE - Preparing invitation data')
+        
+        const invitationPayload = {
           companyName: data.companyName,
           contactName: data.contactName,
-          email: data.email, // This will need to be collected from the form
+          email: data.email,
           level: data.level,
           expiryDays: 7
-        }),
-      })
+        }
+        
+        console.log('📦 Invitation payload:', invitationPayload)
+        
+        // Validate required fields before sending
+        if (!invitationPayload.email) {
+          console.error('❌ VALIDATION ERROR: Email is required for invitation')
+          throw new Error('Email is required for sending invitation')
+        }
+        if (!invitationPayload.companyName) {
+          console.error('❌ VALIDATION ERROR: Company name is required for invitation')
+          throw new Error('Company name is required for sending invitation')
+        }
+        if (!invitationPayload.contactName) {
+          console.error('❌ VALIDATION ERROR: Contact name is required for invitation')
+          throw new Error('Contact name is required for sending invitation')
+        }
+        
+        console.log('✅ All required fields validated, sending invitation...')
+        
+        // Send invitation instead of creating client directly
+        const response = await fetch('/api/invites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(invitationPayload),
+        })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to send invitation')
+        console.log('📡 API Response status:', response.status)
+        console.log('📡 API Response ok:', response.ok)
+
+        if (!response.ok) {
+          const error = await response.json()
+          console.error('❌ API ERROR:', error)
+          throw new Error(error.error || 'Failed to send invitation')
+        }
+
+        const responseData = await response.json()
+        console.log('✅ SUCCESS: Invitation sent successfully:', responseData)
+
+        // Redirect to invitations list or show success message
+        console.log('🔄 Redirecting to clients page with invited=true')
+        router.push('/clients?invited=true')
+      } else {
+        console.log('👤 DIRECT CREATION MODE - Creating client directly')
+        console.log('📦 Client data payload:', data)
+        
+        // Create client directly (existing functionality)
+        const response = await fetch('/api/clients', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+
+        console.log('📡 API Response status:', response.status)
+        console.log('📡 API Response ok:', response.ok)
+
+        if (!response.ok) {
+          const error = await response.json()
+          console.error('❌ API ERROR:', error)
+          throw new Error(error.error || 'Failed to create client')
+        }
+
+        const newClient = await response.json()
+        console.log('✅ SUCCESS: Client created successfully:', newClient)
+        
+        console.log('🔄 Redirecting to client page:', `/clients/${newClient.id}`)
+        router.push(`/clients/${newClient.id}`)
       }
-
-      // Redirect to invitations list or show success message
-      router.push('/clients?invited=true')
-    } else {
-      // Create client directly (existing functionality)
-      const response = await fetch('/api/clients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create client')
-      }
-
-      const newClient = await response.json()
-      router.push(`/clients/${newClient.id}`)
+    } catch (error) {
+      console.error('💥 FORM SUBMISSION ERROR:', error)
+      console.error('💥 Error message:', error.message)
+      console.error('💥 Error stack:', error.stack)
+      // Re-throw to let the form wrapper handle it
+      throw error
     }
   }
 
@@ -194,7 +246,7 @@ export default function NewClientPage() {
         {/* Form */}
         <div className="bg-white shadow rounded-lg p-6">
           <FormWrapper
-            schema={clientProfileSchema}
+            schema={inviteMode ? clientInvitationSchema : clientProfileSchema}
             onSubmit={handleSubmit}
             submitText={inviteMode ? "Send Invitation" : "Create Client"}
             successMessage={inviteMode ? "Invitation sent successfully!" : "Client created successfully!"}

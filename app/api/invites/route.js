@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { db as prisma } from '@/lib/db'
-import { generateInviteToken, sendInvitationEmail } from '@/lib/email'
 
 export async function POST(request) {
+  console.log('🔥 INVITES API - POST REQUEST RECEIVED')
+  
   try {
     const { userId } = auth()
+    console.log('👤 Clerk User ID:', userId)
     
     if (!userId) {
+      console.error('❌ UNAUTHORIZED: No user ID from Clerk auth')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -52,91 +55,80 @@ export async function POST(request) {
       )
     }
 
-    // Check if email already exists
-    const existingProfile = await prisma.clientProfile.findFirst({
-      where: {
-        OR: [
-          { contactName: contactName, companyName: companyName },
-          { 
-            user: {
-              email: email
-            }
-          }
-        ]
-      },
-      include: { user: true }
+    // Check if email already exists in our database
+    const existingUser = await prisma.user.findFirst({
+      where: { email: email },
+      include: { clientProfile: true }
     })
 
-    if (existingProfile) {
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'A profile with this email or company contact already exists' },
+        { error: 'A user with this email already exists' },
         { status: 400 }
       )
     }
 
-    // Generate unique invite token
-    const inviteToken = generateInviteToken()
-    const inviteExpiry = new Date()
-    inviteExpiry.setDate(inviteExpiry.getDate() + expiryDays)
+    // Check if there's already a pending Clerk invitation for this email
+    try {
+      const existingInvitations = await clerkClient.invitations.getInvitationList({
+        status: 'pending'
+      })
+      
+      const duplicateInvitation = existingInvitations.find(
+        inv => inv.emailAddress === email
+      )
+      
+      if (duplicateInvitation) {
+        return NextResponse.json(
+          { error: 'An invitation has already been sent to this email address' },
+          { status: 400 }
+        )
+      }
+    } catch (clerkError) {
+      console.warn('Could not check existing invitations:', clerkError)
+    }
 
-    // Create user record
-    const newUser = await prisma.user.create({
-      data: {
-        email: email,
-        level: level,
-        isActive: false,
-        clientProfile: {
-          create: {
-            companyName: companyName,
-            contactName: contactName,
-            level: level,
-            status: 'PENDING_ACTIVATION',
-            inviteToken: inviteToken,
-            inviteExpiry: inviteExpiry,
-            invitedBy: `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email,
-            isActive: false
-          }
+    // Create Clerk invitation with metadata
+    console.log('🔥 Creating Clerk invitation with metadata...')
+    
+    const invitedByName = `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email
+    
+    const invitation = await clerkClient.invitations.createInvitation({
+      emailAddress: email,
+      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`,
+      publicMetadata: {
+        // User level and profile information
+        userLevel: level,
+        companyName: companyName,
+        contactName: contactName,
+        invitedBy: invitedByName,
+        invitedById: currentUser.id,
+        // This will be used by the webhook to create the proper profile
+        profileData: {
+          level: level,
+          companyName: companyName,
+          contactName: contactName,
+          status: 'PENDING_ACTIVATION'
         }
-      },
-      include: {
-        clientProfile: true
       }
     })
-
-    // Send invitation email
-    try {
-      await sendInvitationEmail({
-        email: email,
-        contactName: contactName,
-        companyName: companyName,
-        inviteToken: inviteToken,
-        invitedBy: `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email,
-        expiryDate: inviteExpiry
-      })
-    } catch (emailError) {
-      console.error('Error sending invitation email:', emailError)
-      
-      // Clean up created user if email fails
-      await prisma.user.delete({
-        where: { id: newUser.id }
-      })
-      
-      return NextResponse.json(
-        { error: 'Failed to send invitation email' },
-        { status: 500 }
-      )
-    }
+    
+    console.log('✅ Clerk invitation created successfully:', {
+      invitationId: invitation.id,
+      email: invitation.emailAddress,
+      status: invitation.status
+    })
 
     return NextResponse.json({
       success: true,
       invitation: {
-        id: newUser.clientProfile.id,
+        id: invitation.id,
         companyName: companyName,
         contactName: contactName,
         email: email,
         level: level,
-        inviteToken: inviteToken,
-        expiryDate: inviteExpiry.toISOString()
+        status: invitation.status,
+        createdAt: invitation.createdAt
       }
     })
 
@@ -181,37 +173,27 @@ export async function GET(request) {
       )
     }
 
-    // Get all pending invitations
-    const pendingInvitations = await prisma.clientProfile.findMany({
-      where: {
-        status: 'PENDING_ACTIVATION',
-        inviteToken: {
-          not: null
-        }
-      },
-      include: {
-        user: {
-          select: {
-            email: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
+    // Get all pending invitations from Clerk
+    const clerkInvitations = await clerkClient.invitations.getInvitationList({
+      status: 'pending',
+      limit: 50
     })
 
-    const invitations = pendingInvitations.map(profile => ({
-      id: profile.id,
-      companyName: profile.companyName,
-      contactName: profile.contactName,
-      email: profile.user?.email,
-      level: profile.level,
-      invitedBy: profile.invitedBy,
-      createdAt: profile.createdAt,
-      expiryDate: profile.inviteExpiry,
-      expired: profile.inviteExpiry ? new Date() > profile.inviteExpiry : false
-    }))
+    const invitations = clerkInvitations.map(invitation => {
+      const metadata = invitation.publicMetadata || {}
+      return {
+        id: invitation.id,
+        companyName: metadata.companyName || '',
+        contactName: metadata.contactName || '',
+        email: invitation.emailAddress,
+        level: metadata.userLevel || 'L2_CLIENT',
+        invitedBy: metadata.invitedBy || 'Unknown',
+        createdAt: invitation.createdAt,
+        expiryDate: new Date(invitation.createdAt + (30 * 24 * 60 * 60 * 1000)), // 30 days from creation
+        expired: false, // Clerk handles expiration automatically
+        status: invitation.status
+      }
+    })
 
     return NextResponse.json({ invitations })
 

@@ -72,6 +72,7 @@
     "test": "npm run test:phase2"
   },
   "dependencies": {
+    "@clerk/backend": "^2.14.0",
     "@clerk/nextjs": "^4.29.0",
     "@hookform/resolvers": "^3.3.4",
     "@prisma/client": "^5.11.0",
