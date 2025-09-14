@@ -117,7 +117,8 @@ async function handleUserCreated(userData) {
     }
 
     // If user was created via invitation, use the metadata from the invitation
-    if (created_via_invitation && public_metadata?.profileData) {
+    // Check for invitation metadata even if created_via_invitation is not set
+    if ((created_via_invitation || public_metadata?.profileData) && public_metadata?.profileData) {
       const profileData = public_metadata.profileData
       const userLevel = public_metadata.userLevel || 'L2_CLIENT'
       

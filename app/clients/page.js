@@ -66,6 +66,7 @@ const HierarchyColumn = ({ client }) => {
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([])
+  const [hierarchicalData, setHierarchicalData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showWelcome, setShowWelcome] = useState(false)
@@ -74,7 +75,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     fetchClients()
-    
+
     // Check if this is a welcome redirect
     if (searchParams.get('welcome') === 'true') {
       setShowWelcome(true)
@@ -90,11 +91,49 @@ export default function ClientsPage() {
       }
       const data = await response.json()
       setClients(data)
+
+      // Process data into hierarchy for display
+      const processedData = processHierarchicalData(data)
+      setHierarchicalData(processedData)
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  const processHierarchicalData = (clientData) => {
+    // Separate Direct Accounts and Sub-Clients
+    const directAccounts = clientData.filter(client => client.level === 'L2_CLIENT')
+    const subClients = clientData.filter(client => client.level === 'L3_SUBCLIENT')
+
+    // Create hierarchy: Direct Accounts with their Sub-Clients nested underneath
+    const hierarchical = []
+
+    directAccounts.forEach(directAccount => {
+      // Add the Direct Account
+      hierarchical.push({
+        ...directAccount,
+        isParent: true,
+        depth: 0
+      })
+
+      // Add its Sub-Clients underneath
+      const childSubClients = subClients.filter(sub =>
+        sub.parentClientId === directAccount.id
+      )
+
+      childSubClients.forEach(subClient => {
+        hierarchical.push({
+          ...subClient,
+          isChild: true,
+          depth: 1,
+          parentName: directAccount.companyName || directAccount.secdexCode
+        })
+      })
+    })
+
+    return hierarchical
   }
 
   const handleRowClick = (client) => {
@@ -107,7 +146,7 @@ export default function ClientsPage() {
       label: 'SECDEX Code',
       sortable: true,
       render: (client) => (
-        <Link 
+        <Link
           href={`/clients/${client.id}`}
           className="font-medium text-indigo-600 hover:text-indigo-500"
         >
@@ -133,6 +172,44 @@ export default function ClientsPage() {
       )
     },
     {
+      key: 'clientType',
+      label: 'Client Type',
+      sortable: true,
+      render: (client) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          client.level === 'L2_CLIENT'
+            ? 'bg-blue-100 text-blue-800 border border-blue-200'
+            : 'bg-purple-100 text-purple-800 border border-purple-200'
+        }`}>
+          {client.level === 'L2_CLIENT' ? 'Direct Account' : 'Sub-Client'}
+        </span>
+      )
+    },
+    {
+      key: 'parent',
+      label: 'Parent',
+      sortable: false,
+      render: (client) => {
+        if (client.level === 'L2_CLIENT') {
+          return <span className="text-gray-400">-</span>
+        }
+        return (
+          <div className="text-sm text-gray-700">
+            {client.parentClient ? (
+              <Link
+                href={`/clients/${client.parentClient.id}`}
+                className="text-indigo-600 hover:text-indigo-500"
+              >
+                {client.parentClient.companyName || client.parentClient.secdexCode}
+              </Link>
+            ) : (
+              <span className="text-red-500">No Parent</span>
+            )}
+          </div>
+        )
+      }
+    },
+    {
       key: 'user',
       label: 'User',
       sortable: false,
@@ -152,12 +229,6 @@ export default function ClientsPage() {
           )}
         </div>
       )
-    },
-    {
-      key: 'hierarchy',
-      label: 'Hierarchy',
-      sortable: false,
-      render: (client) => <HierarchyColumn client={client} />
     },
     {
       key: 'phone',
@@ -182,7 +253,7 @@ export default function ClientsPage() {
       sortable: true,
       render: (client) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          client.isActive 
+          client.isActive
             ? 'bg-green-100 text-green-800 border border-green-200'
             : 'bg-red-100 text-red-800 border border-red-200'
         }`}>
