@@ -11,9 +11,10 @@ import {
   TrendingUpIcon
 } from 'lucide-react'
 import { InputPageLayout } from '@/components/layout/input-page-layout'
+import { formatAppDate, getTodayString } from '@/lib/date-utils'
 
 export default function PricesPage() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(getTodayString())
   const [securities, setSecurities] = useState([])
   const [prices, setPrices] = useState({})
   const [loading, setLoading] = useState(false)
@@ -24,6 +25,15 @@ export default function PricesPage() {
   useEffect(() => {
     fetchSecurities()
   }, [])
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Securities state updated:', securities.length, 'securities')
+  }, [securities])
+
+  useEffect(() => {
+    console.log('Prices state updated:', Object.keys(prices).length, 'price entries')
+  }, [prices])
 
   useEffect(() => {
     if (selectedDate) {
@@ -36,10 +46,13 @@ export default function PricesPage() {
       const response = await fetch('/api/securities')
       if (response.ok) {
         const data = await response.json()
-        setSecurities(data.securities || [])
+        setSecurities(data.data || [])
+      } else {
+        console.error('Failed to fetch securities:', response.status, response.statusText)
       }
     } catch (err) {
-      setError('Failed to fetch securities')
+      console.error('Error fetching securities:', err)
+      // Don't set error for securities fetch failure to avoid clearing the form
     }
   }
 
@@ -54,8 +67,11 @@ export default function PricesPage() {
           priceMap[price.securityId] = price
         })
         setPrices(priceMap)
+      } else {
+        console.error('Failed to fetch prices for date:', response.status, response.statusText)
       }
     } catch (err) {
+      console.error('Error fetching prices for date:', err)
       setError('Failed to fetch prices')
     } finally {
       setLoading(false)
@@ -98,6 +114,8 @@ export default function PricesPage() {
       if (response.ok) {
         setChanges({})
         await fetchPricesForDate(selectedDate)
+        // Refresh securities list to ensure it's still available
+        await fetchSecurities()
       } else {
         const errorData = await response.json()
         setError(errorData.error || 'Failed to save prices')
@@ -184,7 +202,7 @@ export default function PricesPage() {
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <span className="text-sm text-gray-500">
-                {format(new Date(selectedDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy')}
+                {formatAppDate(selectedDate, 'EEEE, MMMM d, yyyy')}
               </span>
             </div>
             
@@ -207,7 +225,7 @@ export default function PricesPage() {
               Securities Price Grid
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Enter prices for all securities on {format(new Date(selectedDate + 'T00:00:00'), 'MMMM d, yyyy')}
+              Enter prices for all securities on {formatAppDate(selectedDate, 'MMMM d, yyyy')}
             </p>
           </div>
           
@@ -344,6 +362,9 @@ export default function PricesPage() {
             <p className="mt-1 text-sm text-gray-500">
               Add securities to the system to enter price data.
             </p>
+            <div className="mt-4 text-xs text-gray-400">
+              Debug: securities.length = {securities.length}, loading = {loading.toString()}, error = "{error}"
+            </div>
           </div>
         )}
     </InputPageLayout>

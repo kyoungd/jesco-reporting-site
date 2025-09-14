@@ -89,9 +89,27 @@ export async function GET(req) {
       db.security.count({ where })
     ])
 
+    // Transform securities data to handle BigInt serialization
+    const transformedSecurities = securities.map(security => ({
+      ...security,
+      _count: {
+        transactions: Number(security._count.transactions),
+        positions: Number(security._count.positions)
+      },
+      prices: security.prices.map(price => ({
+        ...price,
+        open: price.open ? Number(price.open) : null,
+        high: price.high ? Number(price.high) : null,
+        low: price.low ? Number(price.low) : null,
+        close: Number(price.close),
+        volume: price.volume ? Number(price.volume) : null,
+        adjustedClose: price.adjustedClose ? Number(price.adjustedClose) : null
+      }))
+    }))
+
     return NextResponse.json({
       success: true,
-      data: securities,
+      data: transformedSecurities,
       total,
       page,
       limit,
@@ -173,9 +191,27 @@ export async function POST(req) {
         }
       })
 
+      // Transform security data to handle BigInt serialization
+      const transformedSecurity = {
+        ...security,
+        _count: {
+          transactions: Number(security._count.transactions),
+          positions: Number(security._count.positions)
+        },
+        prices: security.prices.map(price => ({
+          ...price,
+          open: price.open ? Number(price.open) : null,
+          high: price.high ? Number(price.high) : null,
+          low: price.low ? Number(price.low) : null,
+          close: Number(price.close),
+          volume: price.volume ? Number(price.volume) : null,
+          adjustedClose: price.adjustedClose ? Number(price.adjustedClose) : null
+        }))
+      }
+
       return NextResponse.json({
         success: true,
-        data: security,
+        data: transformedSecurity,
         message: 'Security created successfully'
       }, { status: 201 })
 
