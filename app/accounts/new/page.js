@@ -34,13 +34,6 @@ export default function NewAccountPage() {
 
   useEffect(() => {
     if (isLoaded) {
-      // Check permissions
-      const userLevel = user?.publicMetadata?.level
-      if (userLevel !== USER_LEVELS.L5_ADMIN && userLevel !== USER_LEVELS.L4_AGENT) {
-        router.push('/accounts')
-        return
-      }
-      
       fetchClientProfiles()
     }
   }, [isLoaded, user])

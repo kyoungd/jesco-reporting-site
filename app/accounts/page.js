@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Eye, Filter, Building2, CreditCard, TrendingUp, DollarSign } from 'lucide-react'
-import { ACCOUNT_TYPES, ACCOUNT_TYPE_NAMES, USER_LEVELS } from '@/lib/constants'
+import { Search, Plus, Eye, Building2, CreditCard, TrendingUp, DollarSign } from 'lucide-react'
+import { ACCOUNT_TYPE_NAMES } from '@/lib/constants'
 import { InputPageLayout } from '@/components/layout/input-page-layout'
 
 export default function AccountsPage() {
@@ -67,9 +67,6 @@ export default function AccountsPage() {
     setError('')
   }
 
-  const canCreateAccounts = user?.publicMetadata?.level === USER_LEVELS.L5_ADMIN || 
-                           user?.publicMetadata?.level === USER_LEVELS.L4_AGENT
-
   if (!isLoaded) {
     return <div className="p-8">Loading...</div>
   }
@@ -77,23 +74,21 @@ export default function AccountsPage() {
   return (
     <InputPageLayout
       title="Accounts"
-      description="Manage client accounts and account setup"
+      description="Manage client investment accounts"
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Account Management</h2>
-          <p className="text-sm text-gray-600 mt-1">Manage master accounts and client accounts</p>
+          <p className="text-sm text-gray-600 mt-1">Manage client investment accounts</p>
         </div>
-        {canCreateAccounts && (
-          <button
-            onClick={() => router.push('/accounts/new')}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Account
-          </button>
-        )}
+        <button
+          onClick={() => router.push('/accounts/new')}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Account
+        </button>
       </div>
 
       {/* Error Messages */}
