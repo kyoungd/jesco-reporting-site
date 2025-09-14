@@ -13,7 +13,8 @@ import {
   DollarSign,
   TrendingDown,
   Plus,
-  Settings
+  Settings,
+  HelpCircle
 } from 'lucide-react'
 
 export function NavigationMenu() {
@@ -65,6 +66,12 @@ export function NavigationMenu() {
       href: '/prices/series',
       icon: BarChart,
       description: 'Manage price series and historical data'
+    },
+    {
+      name: 'Help',
+      href: '/help',
+      icon: HelpCircle,
+      description: 'Setup guide and workflow information'
     }
   ]
 

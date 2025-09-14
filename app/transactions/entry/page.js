@@ -75,22 +75,22 @@ export default function TransactionEntryPage() {
       const [accountsRes, securitiesRes, clientProfilesRes] = await Promise.all([
         fetch('/api/accounts'),
         fetch('/api/securities?limit=1000'),
-        fetch('/api/client-profiles')
+        fetch('/api/clients')
       ])
 
       if (accountsRes.ok) {
         const accountsData = await accountsRes.json()
-        setAccounts(accountsData.accounts || [])
+        setAccounts(accountsData.data || [])
       }
 
       if (securitiesRes.ok) {
         const securitiesData = await securitiesRes.json()
-        setSecurities(securitiesData.securities || [])
+        setSecurities(securitiesData.data || [])
       }
 
       if (clientProfilesRes.ok) {
         const clientProfilesData = await clientProfilesRes.json()
-        setClientProfiles(clientProfilesData.clientProfiles || [])
+        setClientProfiles(clientProfilesData || [])
       }
     } catch (error) {
       console.error('Error fetching reference data:', error)
