@@ -13,7 +13,7 @@ export default function TransactionsPage() {
   const { user, isLoaded } = useUser()
   const [transactions, setTransactions] = useState([])
   const [accounts, setAccounts] = useState([])
-  const [securities, setSsecurities] = useState([])
+  const [securities, setSecurities] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   
@@ -64,7 +64,7 @@ export default function TransactionsPage() {
       const response = await fetch('/api/securities?limit=1000')
       if (response.ok) {
         const data = await response.json()
-        setSsecurities(data.securities || [])
+        setSecurities(data.data || [])
       }
     } catch (error) {
       console.error('Error fetching securities:', error)

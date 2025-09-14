@@ -59,7 +59,7 @@ export default function PriceImportPage() {
       const response = await fetch('/api/securities')
       if (response.ok) {
         const data = await response.json()
-        setSecurities(data.securities || [])
+        setSecurities(data.data || [])
       }
     } catch (err) {
       setError('Failed to fetch securities')
