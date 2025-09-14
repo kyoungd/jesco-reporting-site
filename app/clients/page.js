@@ -282,35 +282,15 @@ export default function ClientsPage() {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <Users className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Total Clients
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {clients.length}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
                     <Building2 className="h-6 w-6 text-gray-400" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        Active Clients
+                        Direct Accounts
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        {clients.filter(c => c.isActive).length}
+                        {clients.filter(c => c.level === 'L2_CLIENT').length}
                       </dd>
                     </dl>
                   </div>
@@ -327,10 +307,30 @@ export default function ClientsPage() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        With Sub-Clients
+                        Sub-Clients
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        {clients.filter(c => c.subClients && c.subClients.length > 0).length}
+                        {clients.filter(c => c.level === 'L3_SUBCLIENT').length}
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <Users className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Active Accounts
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {clients.filter(c => c.isActive).length}
                       </dd>
                     </dl>
                   </div>
